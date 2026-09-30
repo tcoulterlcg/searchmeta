@@ -1,103 +1,51 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Wordmark } from "@/components/Logo";
+
+const SOURCES = ["eBay", "Goldin", "Fanatics Collect", "Heritage"];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)]">
+      <header className="flex items-center justify-between">
+        <Wordmark />
+        <Link href="/login" className="text-sm text-muted hover:text-text">
+          Sign in
+        </Link>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <section className="flex flex-1 flex-col justify-center py-16">
+        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">Live on 4 auction houses</p>
+        <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
+          One saved search.
+          <br />
+          Every auction house.
+        </h1>
+        <p className="mt-5 max-w-xl text-lg text-muted">
+          Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on{" "}
+          {SOURCES.join(", ")}, your phone buzzes.
+        </p>
+
+        <div className="mt-8 rounded-xl border border-line bg-panel p-4 font-mono text-sm">
+          <div className="text-muted">saved search</div>
+          <div className="mt-1 text-text">kucherov shield -reprint (psa,bgs)</div>
+          <div className="mt-4 flex items-start gap-3 rounded-lg bg-ink p-3 font-sans">
+            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-signal shadow-[0_0_12px_#3ef08a]" />
+            <div>
+              <div className="text-sm font-semibold">Kucherov Shield · eBay</div>
+              <div className="text-sm text-muted">2015 UD The Cup Nikita Kucherov Shield Patch /25 PSA 9 · $1,250</div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="mt-8 flex gap-3">
+          <Link href="/login?mode=signup" className="btn-primary">
+            Start free
+          </Link>
+          <Link href="/login" className="btn-ghost">
+            Sign in
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }
