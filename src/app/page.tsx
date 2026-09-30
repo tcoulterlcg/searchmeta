@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 
-const SOURCES = ["eBay", "Goldin", "Fanatics Collect", "Heritage"];
+const SOURCES = ["eBay", "Goldin", "Fanatics Collect"];
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       </header>
 
       <section className="flex flex-1 flex-col justify-center py-16">
-        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">Live on 4 auction houses</p>
+        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">eBay · Goldin · Fanatics Collect</p>
         <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
           One saved search.
           <br />

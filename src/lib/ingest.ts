@@ -87,7 +87,7 @@ export async function ingestListings(db: SupabaseClient, source: SourceId, batch
   return { matchedListings: matched.length, newMatches: inserted?.length ?? 0, pushes };
 }
 
-async function loadActiveSearches(db: SupabaseClient, source: SourceId): Promise<SavedSearch[]> {
+export async function loadActiveSearches(db: SupabaseClient, source: SourceId): Promise<SavedSearch[]> {
   const all: SavedSearch[] = [];
   const pageSize = 1000;
   for (let from = 0; ; from += pageSize) {

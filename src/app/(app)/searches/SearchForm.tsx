@@ -44,9 +44,13 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
 
         <Field label="Sites">
           <div className="flex flex-wrap gap-2">
-            {SOURCES.map((src) => (
-              <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
-            ))}
+            {SOURCES.map((src) =>
+              src.id === "heritage" ? (
+                <span key={src.id} className="chip cursor-not-allowed opacity-50">{src.name} · soon</span>
+              ) : (
+                <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
+              ),
+            )}
           </div>
         </Field>
 
