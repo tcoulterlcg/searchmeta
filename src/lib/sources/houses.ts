@@ -15,11 +15,19 @@ export interface House {
   base: string;
 }
 
-export const HOUSES: House[] = [
+/**
+ * Built and tested, but switched off: these four sites answer our reader with
+ * "403 Forbidden" from the live servers (checked 10/1/2026). We don't disguise the
+ * reader to get past that. Move a house into HOUSES once it lets SearchMetaBot in.
+ */
+export const BLOCKED_HOUSES: House[] = [
   { id: "lelands", platform: "gallery", base: "https://auction.lelands.com" },
   { id: "memorylane", platform: "gallery", base: "https://bid.memorylaneinc.com" },
   { id: "lotg", platform: "gallery", base: "https://bid.loveofthegameauctions.com" },
   { id: "collectauctions", platform: "gallery", base: "https://www.collectauctions.com" },
+];
+
+export const HOUSES: House[] = [
   { id: "sirius", platform: "catalog", base: "https://www.siriussportsauctions.com" },
   { id: "wheatland", platform: "catalog", base: "https://www.wheatlandauctionservices.com" },
   { id: "brockelman", platform: "catalog", base: "https://www.brockelmanauctions.com" },
@@ -101,7 +109,7 @@ async function fetchGallery(h: House, cursor: number) {
     }
     page++;
   }
-  return { listings, nextCursor: page, calls, parsed };
+  return { listings, nextCursor: page, calls, parsed, note: "" };
 }
 
 /* ---------- "catalog" software ---------- */
@@ -118,7 +126,7 @@ export function parseCatalog(h: House, html: string): ListingInput[] {
     if (!link) continue;
     const title = text(link[4]);
     if (!title) continue;
-    const img = chunk.match(/<img class='lotImage' src='([^']+)'/i)?.[1];
+    const img = chunk.match(/<img\b[^>]*?\b(?:data-src|data-original|src)=['"]([^'"]+)['"]/i)?.[1];
     out.push(
       listing(h, {
         id: link[3],
@@ -173,6 +181,14 @@ async function fetchCatalog(h: House) {
 
   // The page shows 25 lots at a time; ask it for all of them the way the dropdown does.
   const control = lotsPerPageControl(html);
+  // Shown only in test reads, to see how a house's page is laid out.
+  let note =
+    `first page ${lots.length}; dropdowns: ` +
+    [...html.matchAll(/<select\b[^>]*\bname="([^"]*)"[^>]*>([\s\S]*?)<\/select>/gi)]
+      .map((m) => `${m[1]}=[${[...m[2].matchAll(/<option\b[^>]*>([\s\S]*?)<\/option>/gi)].map((o) => text(o[1])).slice(0, 8).join("|")}]`)
+      .join("; ")
+      .slice(0, 600) +
+    `; pager: ${[...new Set([...html.matchAll(/__doPostBack\(&#39;([^&]+)&#39;,&#39;([^&]*)&#39;\)/g)].map((m) => `${m[1]}:${m[2]}`))].slice(0, 12).join(", ").slice(0, 500)}`;
   if (control && lots.length) {
     try {
       const form = formFields(html);
@@ -187,13 +203,15 @@ async function fetchCatalog(h: House) {
       });
       calls++;
       const all = parseCatalog(h, await res.text());
+      note += `; all-lots request returned ${all.length}`;
       if (all.length > lots.length) lots = all;
-    } catch {
+    } catch (e) {
       // Keep the first page if the full list can't be loaded.
+      note += `; all-lots request failed: ${e instanceof Error ? e.message : String(e)}`;
     }
   }
   const byId = new Map(lots.map((l) => [l.external_id, l]));
-  return { listings: [...byId.values()], nextCursor: 1, calls, parsed: lots.length };
+  return { listings: [...byId.values()], nextCursor: 1, calls, parsed: lots.length, note };
 }
 
 export async function fetchHouseListings(h: House, cursor: number) {

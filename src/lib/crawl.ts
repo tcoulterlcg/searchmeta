@@ -77,6 +77,7 @@ export async function runSource(
       cursor = String(r.nextCursor);
       extra.calls = r.calls;
       extra.lotsOnPage = r.parsed;
+      if (opts.debug) extra.note = r.note;
     } else {
       throw new Error(`No crawler for ${source}`);
     }

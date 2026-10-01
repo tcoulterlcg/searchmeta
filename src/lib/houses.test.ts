@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { formFields, HOUSES, lotsPerPageControl, parseCatalog, parseGallery } from "./sources/houses";
+import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, parseCatalog, parseGallery } from "./sources/houses";
 import { parseMySlabs } from "./sources/myslabs";
 import { toCollectorCryptListing } from "./sources/collectorcrypt";
 
-const lelands = HOUSES.find((h) => h.id === "lelands")!;
+const lelands = BLOCKED_HOUSES.find((h) => h.id === "lelands")!;
 const sirius = HOUSES.find((h) => h.id === "sirius")!;
 
 const galleryItem = (id: number, title: string, status: string, price: string) => `
