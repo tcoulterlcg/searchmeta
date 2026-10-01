@@ -32,7 +32,7 @@ export default function Home() {
             <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-signal shadow-[0_0_12px_#3ef08a]" />
             <div>
               <div className="text-sm font-semibold">Kucherov Shield · eBay</div>
-              <div className="text-sm text-muted">2015 UD The Cup Nikita Kucherov Shield Patch BGS 9.5 · $1,250</div>
+              <div className="text-sm text-muted">2015 UD The Cup Nikita Kucherov Shield Patch 1/1 BGS 9.5 · $86,806.86</div>
             </div>
           </div>
         </div>
