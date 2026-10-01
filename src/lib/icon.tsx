@@ -1,25 +1,23 @@
 import { ImageResponse } from "next/og";
 
+/** App icon / favicon: the converge mark on the ink background, inset for maskable safe zone. */
 export function renderIcon(size: number) {
-  const s = size / 64;
+  const mark = Math.round(size * 0.72);
   return new ImageResponse(
     (
-      <div style={{ width: size, height: size, background: "#0b0d10", display: "flex", position: "relative" }}>
-        <div
-          style={{
-            position: "absolute", left: 15 * s, top: 15 * s, width: 26 * s, height: 26 * s,
-            borderRadius: "50%", border: `${5 * s}px solid #3ef08a`, display: "flex",
-            alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <div style={{ width: 8 * s, height: 8 * s, borderRadius: "50%", background: "#3ef08a" }} />
-        </div>
-        <div
-          style={{
-            position: "absolute", left: 36 * s, top: 41 * s, width: 17 * s, height: 6 * s,
-            background: "#3ef08a", borderRadius: 3 * s, transform: "rotate(45deg)",
-          }}
-        />
+      <div
+        style={{
+          width: size, height: size, background: "#0b0d10", display: "flex",
+          alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <svg width={mark} height={mark} viewBox="0 0 64 64" fill="none">
+          <path d="M8 12C28 12 26 32 44 32" stroke="#e8ecf1" strokeWidth="4.5" strokeLinecap="round" />
+          <path d="M8 25C24 25 28 32 44 32" stroke="#e8ecf1" strokeWidth="4.5" strokeLinecap="round" />
+          <path d="M8 39C24 39 28 32 44 32" stroke="#e8ecf1" strokeWidth="4.5" strokeLinecap="round" />
+          <path d="M8 52C28 52 26 32 44 32" stroke="#e8ecf1" strokeWidth="4.5" strokeLinecap="round" />
+          <circle cx="50" cy="32" r="9" fill="#3ef08a" />
+        </svg>
       </div>
     ),
     { width: size, height: size },

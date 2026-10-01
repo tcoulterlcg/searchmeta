@@ -1,12 +1,17 @@
 import Link from "next/link";
+import { Bricolage_Grotesque } from "next/font/google";
 
+const wordmarkFont = Bricolage_Grotesque({ subsets: ["latin"], weight: ["300", "800"], display: "swap" });
+
+/** Converge mark: four sources flowing into one alert. Lines use the current text color. */
 export function Logo({ size = 28 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
-      <rect width="64" height="64" rx="14" fill="#13161b" />
-      <circle cx="28" cy="28" r="13" fill="none" stroke="#3ef08a" strokeWidth="5" />
-      <path d="M38 38 L50 50" stroke="#3ef08a" strokeWidth="6" strokeLinecap="round" />
-      <circle cx="28" cy="28" r="4" fill="#3ef08a" />
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden>
+      <path d="M8 12C28 12 26 32 44 32" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M8 25C24 25 28 32 44 32" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M8 39C24 39 28 32 44 32" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M8 52C28 52 26 32 44 32" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+      <circle cx="50" cy="32" r="9" fill="#3ef08a" />
     </svg>
   );
 }
@@ -14,9 +19,15 @@ export function Logo({ size = 28 }: { size?: number }) {
 /** Logo + name. Always links home (signed-in users land on Alerts). */
 export function Wordmark() {
   return (
-    <Link href="/" aria-label="SearchMeta home" className="flex w-fit items-center gap-2 text-lg font-bold tracking-tight">
+    <Link
+      href="/"
+      aria-label="SearchMeta home"
+      className={`${wordmarkFont.className} flex w-fit items-center gap-2 text-xl font-light tracking-tight`}
+    >
       <Logo />
-      Search<span className="text-signal">Meta</span>
+      <span>
+        search<span className="font-extrabold">meta</span>
+      </span>
     </Link>
   );
 }
