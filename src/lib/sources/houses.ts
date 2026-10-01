@@ -1,5 +1,5 @@
 import type { ListingInput, SourceId } from "../types";
-import { decode, getHtml, money, text } from "./html";
+import { decode, getHtml, money, text, UA } from "./html";
 
 /**
  * Auction houses that run on shared auction software. One reader per software
@@ -209,11 +209,45 @@ const CATALOG_BUDGET_MS = 20_000;
 
 async function fetchCatalog(h: House) {
   const url = `${h.base}/catalog.aspx`;
-  const first = await getHtml(url);
-  let html = await first.text();
-  let calls = 1;
+  let calls = 0;
   const started = Date.now();
-  const cookie = (first.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
+
+  // The site keeps the chosen page size in a session, so cookies have to carry across requests and redirects.
+  const jar = new Map<string, string>();
+  const visit = async (target: string, init: RequestInit = {}): Promise<string> => {
+    let next = target;
+    let request = init;
+    for (let hop = 0; hop < 4; hop++) {
+      const res = await fetch(next, {
+        ...request,
+        redirect: "manual",
+        headers: {
+          "User-Agent": UA,
+          Accept: "text/html,application/xhtml+xml",
+          ...(jar.size ? { Cookie: [...jar].map(([k, v]) => `${k}=${v}`).join("; ") } : {}),
+          ...(request.headers ?? {}),
+        },
+        signal: AbortSignal.timeout(25_000),
+      });
+      calls++;
+      for (const c of res.headers.getSetCookie?.() ?? []) {
+        const pair = c.split(";")[0];
+        const eq = pair.indexOf("=");
+        if (eq > 0) jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+      }
+      const location = res.headers.get("location");
+      if (res.status >= 300 && res.status < 400 && location) {
+        next = new URL(location, next).toString();
+        request = {};
+        continue;
+      }
+      if (!res.ok) throw new Error(`${new URL(next).hostname} returned ${res.status}`);
+      return res.text();
+    }
+    throw new Error("too many redirects");
+  };
+
+  let html = await visit(url);
   const byId = new Map<string, ListingInput>();
   const add = (page: string) => {
     const found = parseCatalog(h, page);
@@ -227,7 +261,16 @@ async function fetchCatalog(h: House) {
     `first page ${firstCount}; dropdowns: ` +
     dropdowns(html)
       .map((d) => `${d.name.split("$").pop()}(${d.options.length}: ${d.options[0]?.label}..${d.options.at(-1)?.label})`)
-      .join(", ");
+      .join(", ") +
+    `; cookies: ${[...jar.keys()].join(",")}; buttons: ` +
+    [...html.matchAll(/<input\b[^>]*>/gi)]
+      .map((m) => m[0])
+      .filter((t) => /type="(submit|image|text|button)"/i.test(t))
+      .map((t) => `${(t.match(/\bname="([^"]*)"/i)?.[1] ?? "").split("$").pop()}:${t.match(/type="([^"]*)"/i)?.[1]}:${(t.match(/\bvalue="([^"]*)"/i)?.[1] ?? "").slice(0, 12)}`)
+      .join(", ")
+      .slice(0, 500) +
+    `; paging text: ${text(html).match(/.{0,60}\bof \d+\b.{0,30}/)?.[0] ?? "none"}` +
+    `; page links: ${[...new Set([...html.matchAll(/href="([^"]*(?:page|Page|pg)=?\d+[^"]*)"/g)].map((m) => m[1]))].slice(0, 5).join(" ")}`;
 
   /** Changes a dropdown the way the browser does and returns the page that comes back. */
   const choose = async (names: string[], value: string) => {
@@ -235,13 +278,11 @@ async function fetchCatalog(h: House) {
     form.set("__EVENTTARGET", names[0]);
     form.set("__EVENTARGUMENT", "");
     for (const n of names) form.set(n, value);
-    const res = await getHtml(url, {
+    return visit(url, {
       method: "POST",
       body: form.toString(),
-      headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url, ...(cookie ? { Cookie: cookie } : {}) },
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url },
     });
-    calls++;
-    return res.text();
   };
 
   try {
