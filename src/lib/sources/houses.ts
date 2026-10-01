@@ -196,18 +196,21 @@ export function lotsPerPageControl(html: string): { names: string[]; values: str
   return { names: found.map((d) => d.name), values: [...all, ...numeric.slice(0, 1)].map((o) => o.value) };
 }
 
-/** The page-number dropdown ("Page 1 of 20"), if the catalog is split across pages. */
-export function pageControl(html: string): { names: string[]; pages: string[] } | null {
-  const found = dropdowns(html).filter(
-    (d) => d.options.length >= 2 && d.options.every((o, i) => o.label === String(i + 1)),
-  );
-  return found.length ? { names: found.map((d) => d.name), pages: found[0].options.map((o) => o.value) } : null;
+/** The "Paging: [1] of 20 [Go]" control: the page-number box, its Go button, and how many pages there are. */
+export function pageJump(html: string): { box: string; button: { name: string; value: string }; pages: number } | null {
+  const inputs = [...html.matchAll(/<input\b[^>]*>/gi)].map((m) => m[0]);
+  const name = (tag: string) => tag.match(/\bname="([^"]*)"/i)?.[1] ?? "";
+  const box = inputs.find((t) => /CurrPage\w*TB$/i.test(name(t)));
+  const button = inputs.find((t) => /PageJumpBtn\w*$/i.test(name(t)));
+  if (!box || !button) return null;
+  const after = html.slice(html.indexOf(box) + box.length, html.indexOf(box) + box.length + 400);
+  const pages = Number(text(after).match(/\bof\s+(\d+)/i)?.[1] ?? 1);
+  return { box: name(box), button: { name: name(button), value: decode(button.match(/\bvalue="([^"]*)"/i)?.[1] ?? "Go") }, pages };
 }
 
-const MAX_CATALOG_PAGES = 15;
-const CATALOG_BUDGET_MS = 20_000;
+const CATALOG_BUDGET_MS = 22_000;
 
-async function fetchCatalog(h: House) {
+async function fetchCatalog(h: House, startPage: number) {
   const url = `${h.base}/catalog.aspx`;
   let calls = 0;
   const started = Date.now();
@@ -262,15 +265,9 @@ async function fetchCatalog(h: House) {
     dropdowns(html)
       .map((d) => `${d.name.split("$").pop()}(${d.options.length}: ${d.options[0]?.label}..${d.options.at(-1)?.label})`)
       .join(", ") +
-    `; cookies: ${[...jar.keys()].join(",")}; buttons: ` +
-    [...html.matchAll(/<input\b[^>]*>/gi)]
-      .map((m) => m[0])
-      .filter((t) => /type="(submit|image|text|button)"/i.test(t))
-      .map((t) => `${(t.match(/\bname="([^"]*)"/i)?.[1] ?? "").split("$").pop()}:${t.match(/type="([^"]*)"/i)?.[1]}:${(t.match(/\bvalue="([^"]*)"/i)?.[1] ?? "").slice(0, 12)}`)
-      .join(", ")
-      .slice(0, 500) +
-    `; paging text: ${text(html).match(/.{0,60}\bof \d+\b.{0,30}/)?.[0] ?? "none"}` +
-    `; page links: ${[...new Set([...html.matchAll(/href="([^"]*(?:page|Page|pg)=?\d+[^"]*)"/g)].map((m) => m[1]))].slice(0, 5).join(" ")}`;
+    `; forms: ${[...html.matchAll(/<form\b[^>]*>/gi)].map((m) => m[0].slice(0, 120)).join(" ")}` +
+    `; hidden: ${[...html.matchAll(/<input\b[^>]*type="hidden"[^>]*>/gi)].map((m) => `${m[0].match(/\bname="([^"]*)"/i)?.[1]}(${(m[0].match(/\bvalue="([^"]*)"/i)?.[1] ?? "").length})`).join(",").slice(0, 300)}`;
+  let nextCursor = 1;
 
   /** Changes a dropdown the way the browser does and returns the page that comes back. */
   const choose = async (names: string[], value: string) => {
@@ -300,22 +297,39 @@ async function fetchCatalog(h: House) {
         }
       }
     }
-    // Then walk any remaining pages.
-    const pager = pageControl(html);
-    if (pager) {
-      for (const value of pager.pages.slice(1, MAX_CATALOG_PAGES)) {
-        if (Date.now() - started > CATALOG_BUDGET_MS) break;
-        html = await choose(pager.names, value);
-        note += `; page ${value} returned ${add(html)}`;
+    // Then walk the remaining pages with the "go to page" box, picking up where the last run stopped.
+    let jump = pageJump(html);
+    note += `; pages ${jump?.pages ?? 1}`;
+    let page = jump && startPage > 1 && startPage <= jump.pages ? startPage : 2;
+    while (jump && page <= jump.pages) {
+      if (Date.now() - started > CATALOG_BUDGET_MS) {
+        nextCursor = page;
+        break;
       }
+      const form = formFields(html);
+      form.set("__EVENTTARGET", "");
+      form.set("__EVENTARGUMENT", "");
+      form.set(jump.box, String(page));
+      form.set(jump.button.name, jump.button.value);
+      const before = byId.size;
+      html = await visit(url, {
+        method: "POST",
+        body: form.toString(),
+        headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url },
+      });
+      const n = add(html);
+      note += `; p${page}=${n}`;
+      if (n === 0 || byId.size === before) break;
+      jump = pageJump(html) ?? jump;
+      page++;
     }
   } catch (e) {
     // Keep what was read if a later page can't be loaded.
     note += `; stopped: ${e instanceof Error ? e.message : String(e)}`;
   }
-  return { listings: [...byId.values()], nextCursor: 1, calls, parsed: byId.size, note: note.slice(0, 1500) };
+  return { listings: [...byId.values()], nextCursor, calls, parsed: byId.size, note: note.slice(0, 1500) };
 }
 
 export async function fetchHouseListings(h: House, cursor: number) {
-  return h.platform === "gallery" ? fetchGallery(h, cursor) : fetchCatalog(h);
+  return h.platform === "gallery" ? fetchGallery(h, cursor) : fetchCatalog(h, cursor);
 }

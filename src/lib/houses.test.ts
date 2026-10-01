@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, pageControl, parseCatalog, parseGallery } from "./sources/houses";
+import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, pageJump, parseCatalog, parseGallery } from "./sources/houses";
 import { parseMySlabs } from "./sources/myslabs";
 import { toCollectorCryptListing } from "./sources/collectorcrypt";
 
@@ -80,10 +80,12 @@ describe("catalog auction software (Sirius and others)", () => {
   });
   it("finds the lots-per-page dropdown and the form fields to send back", () => {
     expect(lotsPerPageControl(catalogPage)).toEqual({ names: ["ctl00$ContentPlaceHolder$perPage"], values: ["100000", "50"] });
-    expect(pageControl(catalogPage)).toBeNull();
+    expect(pageJump(catalogPage)).toBeNull();
     expect(
-      pageControl('<select name="pageTop"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>'),
-    ).toEqual({ names: ["pageTop"], pages: ["1", "2", "3"] });
+      pageJump(
+        'Paging: <input name="ctl00$C$CurrPageTopTB" type="text" value="1" id="x" /> of 17 <input type="submit" name="ctl00$C$PageJumpBtn" value="Go" />',
+      ),
+    ).toEqual({ box: "ctl00$C$CurrPageTopTB", button: { name: "ctl00$C$PageJumpBtn", value: "Go" }, pages: 17 });
     const form = formFields(catalogPage);
     expect(form.get("__VIEWSTATE")).toBe("abc+/=");
     expect(form.get("ctl00$ContentPlaceHolder$perPage")).toBe("25");
