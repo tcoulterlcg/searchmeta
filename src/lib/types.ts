@@ -12,6 +12,14 @@ export const SOURCES: { id: SourceId; name: string }[] = [
   { id: "mycardpost", name: "MyCardPost" },
   { id: "sothebys", name: "Sotheby's" },
   { id: "heritage", name: "Heritage" },
+];
+
+/**
+ * Readers that are built but not switched on, so they are not offered in the app yet.
+ * To switch one on: move it into SOURCES, add its row to the `sources` table, add it to
+ * existing saved searches, and schedule its check.
+ */
+export const PENDING_SOURCES: { id: SourceId; name: string }[] = [
   { id: "myslabs", name: "MySlabs" },
   { id: "sirius", name: "Sirius Sports Cards" },
   { id: "wheatland", name: "Wheatland" },

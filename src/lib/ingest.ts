@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SearchIndex } from "./matcher";
 import { sendPushToUser } from "./push";
-import { SOURCES, type ListingInput, type SavedSearch, type SourceId } from "./types";
+import { PENDING_SOURCES, SOURCES, type ListingInput, type SavedSearch, type SourceId } from "./types";
 
-const SOURCE_NAMES = Object.fromEntries(SOURCES.map((s) => [s.id, s.name])) as Record<SourceId, string>;
+const SOURCE_NAMES = Object.fromEntries([...SOURCES, ...PENDING_SOURCES].map((s) => [s.id, s.name])) as Record<SourceId, string>;
 
 /**
  * Takes a batch of listings from any source, matches them against every saved
