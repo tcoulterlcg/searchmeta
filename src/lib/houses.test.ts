@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, parseCatalog, parseGallery } from "./sources/houses";
+import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, pageControl, parseCatalog, parseGallery } from "./sources/houses";
 import { parseMySlabs } from "./sources/myslabs";
 import { toCollectorCryptListing } from "./sources/collectorcrypt";
 
@@ -79,7 +79,11 @@ describe("catalog auction software (Sirius and others)", () => {
     expect(lots[0].ends_at?.slice(0, 10)).toBe("2026-10-09");
   });
   it("finds the lots-per-page dropdown and the form fields to send back", () => {
-    expect(lotsPerPageControl(catalogPage)).toEqual({ name: "ctl00$ContentPlaceHolder$perPage", all: "100000" });
+    expect(lotsPerPageControl(catalogPage)).toEqual({ names: ["ctl00$ContentPlaceHolder$perPage"], values: ["100000", "50"] });
+    expect(pageControl(catalogPage)).toBeNull();
+    expect(
+      pageControl('<select name="pageTop"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>'),
+    ).toEqual({ names: ["pageTop"], pages: ["1", "2", "3"] });
     const form = formFields(catalogPage);
     expect(form.get("__VIEWSTATE")).toBe("abc+/=");
     expect(form.get("ctl00$ContentPlaceHolder$perPage")).toBe("25");

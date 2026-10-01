@@ -159,59 +159,120 @@ export function formFields(html: string): URLSearchParams {
   return form;
 }
 
-/** The "lots per page" dropdown and the value of its "All" choice, if the page has one. */
-export function lotsPerPageControl(html: string): { name: string; all: string } | null {
-  for (const m of html.matchAll(/<select\b[^>]*\bname="([^"]*)"[^>]*>([\s\S]*?)<\/select>/gi)) {
-    const options = [...m[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/gi)].map((o) => ({
+interface Dropdown {
+  name: string;
+  options: { value: string; label: string }[];
+}
+
+export function dropdowns(html: string): Dropdown[] {
+  return [...html.matchAll(/<select\b[^>]*\bname="([^"]*)"[^>]*>([\s\S]*?)<\/select>/gi)].map((m) => ({
+    name: m[1],
+    options: [...m[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/gi)].map((o) => ({
       value: decode(o[1].match(/\bvalue="([^"]*)"/i)?.[1] ?? text(o[2])),
       label: text(o[2]),
-    }));
-    const all = options.find((o) => /^all$/i.test(o.label));
-    if (all && options.some((o) => /^\d+$/.test(o.label))) return { name: m[1], all: all.value };
-  }
-  return null;
+    })),
+  }));
 }
+
+const isNumber = (s: string) => /^\d+$/.test(s);
+
+/**
+ * The "lots per page" dropdown (the page has a copy at the top and the bottom).
+ * Returns its choices from largest to smallest: "All" first when offered.
+ */
+export function lotsPerPageControl(html: string): { names: string[]; values: string[] } | null {
+  const found = dropdowns(html).filter((d) => {
+    const numbers = d.options.filter((o) => isNumber(o.label)).map((o) => Number(o.label));
+    return (
+      numbers.length >= 2 &&
+      Math.min(...numbers) >= 10 &&
+      d.options.every((o) => isNumber(o.label) || /^all$/i.test(o.label))
+    );
+  });
+  if (!found.length) return null;
+  const options = found[0].options;
+  const all = options.filter((o) => /^all$/i.test(o.label));
+  const numeric = options.filter((o) => isNumber(o.label)).sort((a, b) => Number(b.label) - Number(a.label));
+  return { names: found.map((d) => d.name), values: [...all, ...numeric.slice(0, 1)].map((o) => o.value) };
+}
+
+/** The page-number dropdown ("Page 1 of 20"), if the catalog is split across pages. */
+export function pageControl(html: string): { names: string[]; pages: string[] } | null {
+  const found = dropdowns(html).filter(
+    (d) => d.options.length >= 2 && d.options.every((o, i) => o.label === String(i + 1)),
+  );
+  return found.length ? { names: found.map((d) => d.name), pages: found[0].options.map((o) => o.value) } : null;
+}
+
+const MAX_CATALOG_PAGES = 15;
+const CATALOG_BUDGET_MS = 20_000;
 
 async function fetchCatalog(h: House) {
   const url = `${h.base}/catalog.aspx`;
   const first = await getHtml(url);
-  const html = await first.text();
+  let html = await first.text();
   let calls = 1;
-  let lots = parseCatalog(h, html);
+  const started = Date.now();
+  const cookie = (first.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
+  const byId = new Map<string, ListingInput>();
+  const add = (page: string) => {
+    const found = parseCatalog(h, page);
+    for (const l of found) byId.set(l.external_id, l);
+    return found.length;
+  };
+  const firstCount = add(html);
 
-  // The page shows 25 lots at a time; ask it for all of them the way the dropdown does.
-  const control = lotsPerPageControl(html);
   // Shown only in test reads, to see how a house's page is laid out.
   let note =
-    `first page ${lots.length}; dropdowns: ` +
-    [...html.matchAll(/<select\b[^>]*\bname="([^"]*)"[^>]*>([\s\S]*?)<\/select>/gi)]
-      .map((m) => `${m[1]}=[${[...m[2].matchAll(/<option\b[^>]*>([\s\S]*?)<\/option>/gi)].map((o) => text(o[1])).slice(0, 8).join("|")}]`)
-      .join("; ")
-      .slice(0, 600) +
-    `; pager: ${[...new Set([...html.matchAll(/__doPostBack\(&#39;([^&]+)&#39;,&#39;([^&]*)&#39;\)/g)].map((m) => `${m[1]}:${m[2]}`))].slice(0, 12).join(", ").slice(0, 500)}`;
-  if (control && lots.length) {
-    try {
-      const form = formFields(html);
-      form.set("__EVENTTARGET", control.name);
-      form.set("__EVENTARGUMENT", "");
-      form.set(control.name, control.all);
-      const cookie = (first.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
-      const res = await getHtml(url, {
-        method: "POST",
-        body: form.toString(),
-        headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url, ...(cookie ? { Cookie: cookie } : {}) },
-      });
-      calls++;
-      const all = parseCatalog(h, await res.text());
-      note += `; all-lots request returned ${all.length}`;
-      if (all.length > lots.length) lots = all;
-    } catch (e) {
-      // Keep the first page if the full list can't be loaded.
-      note += `; all-lots request failed: ${e instanceof Error ? e.message : String(e)}`;
+    `first page ${firstCount}; dropdowns: ` +
+    dropdowns(html)
+      .map((d) => `${d.name.split("$").pop()}(${d.options.length}: ${d.options[0]?.label}..${d.options.at(-1)?.label})`)
+      .join(", ");
+
+  /** Changes a dropdown the way the browser does and returns the page that comes back. */
+  const choose = async (names: string[], value: string) => {
+    const form = formFields(html);
+    form.set("__EVENTTARGET", names[0]);
+    form.set("__EVENTARGUMENT", "");
+    for (const n of names) form.set(n, value);
+    const res = await getHtml(url, {
+      method: "POST",
+      body: form.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url, ...(cookie ? { Cookie: cookie } : {}) },
+    });
+    calls++;
+    return res.text();
+  };
+
+  try {
+    // The page shows 25 lots at a time. Ask for all of them, or failing that the most it offers.
+    const size = lotsPerPageControl(html);
+    if (size && firstCount >= 20) {
+      for (const value of size.values) {
+        const page = await choose(size.names, value);
+        const n = parseCatalog(h, page).length;
+        note += `; per-page=${value} returned ${n}`;
+        if (n > firstCount) {
+          html = page;
+          add(page);
+          break;
+        }
+      }
     }
+    // Then walk any remaining pages.
+    const pager = pageControl(html);
+    if (pager) {
+      for (const value of pager.pages.slice(1, MAX_CATALOG_PAGES)) {
+        if (Date.now() - started > CATALOG_BUDGET_MS) break;
+        html = await choose(pager.names, value);
+        note += `; page ${value} returned ${add(html)}`;
+      }
+    }
+  } catch (e) {
+    // Keep what was read if a later page can't be loaded.
+    note += `; stopped: ${e instanceof Error ? e.message : String(e)}`;
   }
-  const byId = new Map(lots.map((l) => [l.external_id, l]));
-  return { listings: [...byId.values()], nextCursor: 1, calls, parsed: lots.length, note };
+  return { listings: [...byId.values()], nextCursor: 1, calls, parsed: byId.size, note: note.slice(0, 1500) };
 }
 
 export async function fetchHouseListings(h: House, cursor: number) {
