@@ -69,6 +69,9 @@ export async function ingestListings(db: SupabaseClient, source: SourceId, batch
     const search = searchById.get(row.saved_search_id);
     const listing = listingById.get(row.listing_id);
     if (!search?.notify || !listing) continue;
+    // A brand-new search first matches everything already listed. Show those in Alerts,
+    // but only push for listings that appear after the first 20 minutes.
+    if (Date.now() - new Date(search.created_at).getTime() < 20 * 60_000) continue;
     const key = `${row.user_id}:${row.listing_id}`;
     if (done.has(key)) continue;
     done.add(key);
