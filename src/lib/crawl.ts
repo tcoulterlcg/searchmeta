@@ -4,9 +4,10 @@ import { fetchNewEbayListings } from "./sources/ebay";
 import { fetchGoldinListings } from "./sources/goldin";
 import { fetchFanaticsListings } from "./sources/fanatics";
 import { fetchMyCardPostListings } from "./sources/mycardpost";
+import { fetchSothebysListings } from "./sources/sothebys";
 import type { ListingInput, SourceId } from "./types";
 
-export const CRAWLABLE: SourceId[] = ["ebay", "goldin", "fanatics", "mycardpost"];
+export const CRAWLABLE: SourceId[] = ["ebay", "goldin", "fanatics", "mycardpost", "sothebys"];
 
 interface CrawlState {
   watermark: string | null;
@@ -43,6 +44,12 @@ export async function runSource(db: SupabaseClient, source: SourceId, opts: { de
       listings = r.listings;
       cursor = r.newestId != null ? String(r.newestId) : cursor;
       extra.calls = r.calls;
+    } else if (source === "sothebys") {
+      const r = await fetchSothebysListings(cursor ? Number(cursor) : 0);
+      listings = r.listings;
+      cursor = String(r.nextCursor);
+      extra.calls = r.calls;
+      extra.auctions = r.auctions;
     } else {
       throw new Error(`No crawler for ${source}`);
     }
