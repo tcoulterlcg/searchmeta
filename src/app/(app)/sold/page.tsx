@@ -1,6 +1,8 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { matchesQuery, parseQuery, prepareText } from "@/lib/query";
 import { fetchFanaticsSold } from "@/lib/sources/fanatics";
+import { fetchGoldinSold } from "@/lib/sources/goldin";
+import type { SaleInput } from "@/lib/types";
 import { SOURCES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +31,14 @@ function median(xs: number[]) {
 /** Pulls fresh results from the sources for this search and saves them to our archive. */
 async function refreshArchive(q: string) {
   const db = createServiceClient();
-  try {
-    const fanatics = await fetchFanaticsSold(q);
-    for (let i = 0; i < fanatics.length; i += 500) {
-      await db.from("sales").upsert(fanatics.slice(i, i + 500), { onConflict: "source,external_id", ignoreDuplicates: true });
-    }
-  } catch (e) {
-    console.error("sold refresh failed", e);
+  const results = await Promise.allSettled([fetchFanaticsSold(q), fetchGoldinSold(q)]);
+  const rows: SaleInput[] = [];
+  for (const r of results) {
+    if (r.status === "fulfilled") rows.push(...r.value);
+    else console.error("sold refresh failed", r.reason);
+  }
+  for (let i = 0; i < rows.length; i += 500) {
+    await db.from("sales").upsert(rows.slice(i, i + 500), { onConflict: "source,external_id", ignoreDuplicates: true });
   }
 }
 
@@ -106,7 +109,7 @@ export default async function SoldPage({ searchParams }: { searchParams: Promise
 
       {!query && (
         <p className="mt-6 text-sm text-muted">
-          Search past sales by card. Results come from Fanatics Collect (back to 2021) and grow as SearchMeta records new sales.
+          Search past sales by card. Results come from Goldin (back to 2012) and Fanatics Collect (back to 2021).
         </p>
       )}
 

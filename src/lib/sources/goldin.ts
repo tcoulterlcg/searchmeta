@@ -1,4 +1,5 @@
-import type { BuyingFormat, ListingInput } from "../types";
+import type { BuyingFormat, ListingInput, SaleInput } from "../types";
+import { toSearchText } from "./fanatics";
 
 /**
  * Goldin catalog crawler.
@@ -23,6 +24,7 @@ interface GoldinLot {
   start_timestamp?: string;
   end_timestamp?: string;
   status?: string;
+  buyer_premium?: number;
 }
 
 async function fetchPage(from: number, extra: Record<string, unknown>): Promise<{ lots: GoldinLot[]; total: number }> {
@@ -89,4 +91,52 @@ export async function fetchGoldinListings(
     if (l.lot_id && l.title && l.meta_slug) byId.set(l.lot_id, l);
   }
   return { listings: [...byId.values()].map(toListing), calls: auctions.calls + fixed.calls };
+}
+
+const SOLD_PAGES = 5;
+
+/** Goldin's API stores some times without a zone; they're UTC. */
+function toIso(t?: string) {
+  if (!t) return null;
+  const d = new Date(/Z|[+-]\d\d:?\d\d$/.test(t) ? t : `${t}Z`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/**
+ * Past Goldin sales for a search (archive goes back to 2012).
+ * Price includes the buyer's premium, i.e. what the buyer actually paid.
+ */
+export async function fetchGoldinSold(keywords: string): Promise<SaleInput[]> {
+  const keyword = toSearchText(keywords);
+  if (!keyword) return [];
+  const out: SaleInput[] = [];
+  for (let page = 0; page < SOLD_PAGES; page++) {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://goldin.co", Referer: "https://goldin.co/" },
+      body: JSON.stringify({
+        search: { queryType: "Featured", keyword, size: PAGE_SIZE, from: page * PAGE_SIZE, show_only: "Sold" },
+      }),
+    });
+    if (!res.ok) throw new Error(`Goldin sold error ${res.status}`);
+    const data = (await res.json()) as { searchalgolia?: { lots?: GoldinLot[]; total?: number } };
+    const lots = data.searchalgolia?.lots ?? [];
+    for (const l of lots) {
+      if (!l.lot_id || !l.title || !l.meta_slug) continue;
+      const hammer = l.current_price ?? null;
+      const price = hammer != null ? Math.round(hammer * (1 + (l.buyer_premium ?? 0) / 100) * 100) / 100 : null;
+      out.push({
+        source: "goldin",
+        external_id: l.lot_id,
+        title: l.title,
+        url: `https://goldin.co/item/${l.meta_slug}`,
+        image_url: l.primary_image_name ? `${IMAGE_BASE}/${l.lot_id}/${l.primary_image_name}@1x` : null,
+        price,
+        sale_type: l.auction_type === "Fixed_Price" ? "buy_it_now" : "auction",
+        sold_at: toIso(l.end_timestamp),
+      });
+    }
+    if (lots.length < PAGE_SIZE || (page + 1) * PAGE_SIZE >= (data.searchalgolia?.total ?? 0)) break;
+  }
+  return out;
 }

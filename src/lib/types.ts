@@ -61,3 +61,15 @@ export interface Match {
   listing: Listing;
   saved_search: { name: string } | null;
 }
+
+/** One completed sale for the Sold (comps) archive. */
+export interface SaleInput {
+  source: SourceId;
+  external_id: string;
+  title: string;
+  url: string;
+  image_url: string | null;
+  price: number | null;
+  sale_type: string;
+  sold_at: string | null;
+}

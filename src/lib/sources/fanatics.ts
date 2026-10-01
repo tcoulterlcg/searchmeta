@@ -1,4 +1,4 @@
-import type { BuyingFormat, ListingInput, SavedSearch } from "../types";
+import type { BuyingFormat, ListingInput, SaleInput, SavedSearch } from "../types";
 import { parseQuery, type Clause } from "../query";
 
 /**
@@ -141,16 +141,7 @@ export async function fetchFanaticsListings(
   return { listings: [...byId.values()], calls, queries: queries.length };
 }
 
-export interface SaleInput {
-  source: "fanatics";
-  external_id: string;
-  title: string;
-  url: string;
-  image_url: string | null;
-  price: number | null;
-  sale_type: string;
-  sold_at: string | null;
-}
+export type { SaleInput } from "../types";
 
 interface FanaticsSoldHit extends FanaticsHit {
   soldDate?: number;
