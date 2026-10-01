@@ -69,7 +69,15 @@ export function usePush() {
 
 export function EnablePushBanner() {
   const { state, enable } = usePush();
-  if (state === "on" || state === "loading" || state === "unsupported") return null;
+  if (state === "on" || state === "loading") return null;
+  if (state === "unsupported") {
+    return (
+      <div className="mb-5 rounded-xl border border-line bg-panel p-4 text-sm text-muted">
+        Push alerts aren&apos;t available in this browser. On iPhone, open SearchMeta in <b className="text-text">Safari</b>,
+        tap <b className="text-text">Share → Add to Home Screen</b>, then open it from your Home Screen (iOS 16.4 or newer).
+      </div>
+    );
+  }
 
   return (
     <div className="mb-5 rounded-xl border border-signal-dim bg-signal/5 p-4">
