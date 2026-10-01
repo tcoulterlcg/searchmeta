@@ -9,8 +9,8 @@
   --color-signal: #3ef08a;
   --color-signal-dim: #1f7a47;
   --color-warn: #ffb547;
-  --font-sans: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--font-instrument), ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
   --font-display: var(--font-bricolage), var(--font-sans);
 }
 
@@ -20,9 +20,8 @@ body {
   color: var(--color-text);
 }
 
-h1,
-h2,
-h3 {
+/* Bricolage = brand voice: page titles (and the wordmark) only. Everything else is Instrument Sans. */
+h1 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
 }

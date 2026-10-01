@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { displayFont } from "@/lib/fonts";
+import { displayFont, monoFont, uiFont } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: "SearchMeta",
@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={displayFont.variable}>
+    <html lang="en" className={`${displayFont.variable} ${uiFont.variable} ${monoFont.variable}`}>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );
