@@ -57,10 +57,14 @@ export function parseMarketplacePage(html: string): ListingInput[] {
       const t = text(a[1]);
       if (t.length > title.length && !/^\$/.test(t)) title = t;
     }
+    // Card photos live under /frontend/card/; their alt text is usually the full title.
+    const imgTag = own.match(/<img\b[^>]*(?:data-src|src)=["'][^"']*\/frontend\/card\/[^"']+["'][^>]*>/i)?.[0] ?? null;
+    const img = imgTag?.match(/(?:data-src|src)=["']([^"']+)["']/i)?.[1] ?? null;
+    const alt = imgTag ? text(imgTag.match(/alt=["']([^"']*)["']/i)?.[1] ?? "") : "";
+    if (alt.length > title.length) title = alt;
     if (title.length < 8) title = titleFromSlug(slug);
 
     const priceMatch = own.match(/\$\s?([\d,]+(?:\.\d{2})?)/);
-    const img = card.match(/<img\b[^>]*(?:data-src|src)=["']([^"']+\.(?:jpe?g|png|webp)[^"']*)["']/i)?.[1] ?? null;
     const isAuction = /\bbids?\b|current bid|ends in/i.test(text(own));
     const formats: BuyingFormat[] = isAuction ? ["auction"] : ["buy_it_now"];
     if (!isAuction && /make an offer|best offer|offers? accepted/i.test(text(own))) formats.push("best_offer");

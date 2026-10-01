@@ -3,7 +3,8 @@ import { parseMarketplacePage } from "./sources/mycardpost";
 
 const html = `
 <div class="card">
-  <a href="/marketplace/hockey/2015-16-the-cup-nikita-kucherov-shield-25/1247740"><img src="https://cdn.mycardpost.com/img/abc.jpg"></a>
+  <img src="https://mycardpost.com/frontend/images/filter-hockey.png">
+  <a href="/marketplace/hockey/2015-16-the-cup-nikita-kucherov-shield-25/1247740"><img src="https://cdn.mycardpost.com/frontend/card/abc.jpg" alt="Kucherov"></a>
   <a href="/marketplace/hockey/2015-16-the-cup-nikita-kucherov-shield-25/1247740">2015-16 The Cup Nikita Kucherov Shield /25</a>
   <span class="price">$1,250.00</span>
 </div>
@@ -18,7 +19,7 @@ describe("MyCardPost page parser", () => {
     expect(out.map((l) => l.external_id)).toEqual(["1247740", "1247739"]);
     expect(out[0].title).toBe("2015-16 The Cup Nikita Kucherov Shield /25");
     expect(out[0].price).toBe(1250);
-    expect(out[0].image_url).toBe("https://cdn.mycardpost.com/img/abc.jpg");
+    expect(out[0].image_url).toBe("https://cdn.mycardpost.com/frontend/card/abc.jpg");
     expect(out[0].buying_formats).toEqual(["buy_it_now"]);
     expect(out[1].buying_formats).toEqual(["auction"]);
     expect(out[1].url).toBe("https://mycardpost.com/marketplace/baseball/2026-topps-chrome-ohtani-btp-3/1247739");
