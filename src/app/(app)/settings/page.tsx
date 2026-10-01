@@ -1,11 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { PushSettings } from "./PushSettings";
 import { HeritageForwarding } from "./HeritageForwarding";
+import { AvatarSettings } from "./AvatarSettings";
 import { signOut } from "./actions";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("avatar_url").eq("id", user.id).maybeSingle()
+    : { data: null };
 
   return (
     <div className="space-y-6">
@@ -15,6 +19,8 @@ export default async function SettingsPage() {
         <div className="text-xs font-semibold uppercase tracking-wider text-muted">Account</div>
         <div className="mt-2">{user?.email}</div>
       </section>
+
+      {user?.email && <AvatarSettings email={user.email} initialUrl={profile?.avatar_url ?? null} />}
 
       <PushSettings />
 

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/(app)/settings/actions";
+import { Avatar } from "@/components/Avatar";
 
 /** Avatar button in the header: shows the account and a quick sign-out. */
-export function ProfileMenu({ email }: { email: string }) {
+export function ProfileMenu({ email, avatarUrl }: { email: string; avatarUrl: string | null }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -24,8 +25,6 @@ export function ProfileMenu({ email }: { email: string }) {
     };
   }, [open]);
 
-  const initial = (email[0] ?? "?").toUpperCase();
-
   return (
     <div ref={ref} className="relative">
       <button
@@ -33,9 +32,9 @@ export function ProfileMenu({ email }: { email: string }) {
         aria-label="Account menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-panel text-sm font-semibold text-text transition hover:border-signal"
+        className="rounded-full transition hover:opacity-80"
       >
-        {initial}
+        <Avatar email={email} url={avatarUrl} size={36} />
       </button>
 
       {open && (
