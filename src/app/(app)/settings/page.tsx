@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PushSettings } from "./PushSettings";
 import { HeritageForwarding } from "./HeritageForwarding";
 import { AvatarSettings } from "./AvatarSettings";
+import { ThemeSettings } from "./ThemeSettings";
 import { signOut } from "./actions";
 
 export default async function SettingsPage() {
@@ -21,6 +22,8 @@ export default async function SettingsPage() {
       </section>
 
       {user?.email && <AvatarSettings email={user.email} initialUrl={profile?.avatar_url ?? null} />}
+
+      <ThemeSettings />
 
       <PushSettings />
 

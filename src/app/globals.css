@@ -9,9 +9,43 @@
   --color-signal: #3ef08a;
   --color-signal-dim: #1f7a47;
   --color-warn: #ffb547;
+  --color-on-signal: #0b0d10;
   --font-sans: var(--font-instrument), ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
   --font-display: var(--font-bricolage), var(--font-sans);
+}
+
+/* Light palette. Dark is the default; "system" follows the device. */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --color-ink: #f4f5f7;
+    --color-panel: #ffffff;
+    --color-line: #dde1e7;
+    --color-muted: #5d6877;
+    --color-text: #0b0d10;
+    --color-signal: #0c9a4f;
+    --color-signal-dim: #8fdcb1;
+    --color-warn: #b45f00;
+    --color-on-signal: #ffffff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root[data-theme="system"] {
+      color-scheme: light;
+      --color-ink: #f4f5f7;
+      --color-panel: #ffffff;
+      --color-line: #dde1e7;
+      --color-muted: #5d6877;
+      --color-text: #0b0d10;
+      --color-signal: #0c9a4f;
+      --color-signal-dim: #8fdcb1;
+      --color-warn: #b45f00;
+      --color-on-signal: #ffffff;
+    }
+  }
 }
 
 html,
@@ -40,7 +74,7 @@ body {
   @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-50;
 }
 @utility btn-primary {
-  @apply btn bg-signal text-ink hover:brightness-110;
+  @apply btn bg-signal text-on-signal hover:brightness-110;
 }
 @utility btn-ghost {
   @apply btn border border-line text-text hover:bg-panel;

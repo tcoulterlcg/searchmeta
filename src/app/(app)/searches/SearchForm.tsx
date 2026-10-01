@@ -33,7 +33,7 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
           </details>
           <label className="mt-3 flex items-center gap-2 text-sm text-muted">
             <input type="checkbox" name="search_description" defaultChecked={s?.search_description}
-              className="h-4 w-4 accent-[#3ef08a]" />
+              className="h-4 w-4 accent-signal" />
             Include description in search
           </label>
         </Field>
@@ -111,7 +111,7 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
       {s && (
         <form action={deleteSearch} className="mt-8 border-t border-line pt-6">
           <input type="hidden" name="id" value={s.id} />
-          <button className="text-sm font-medium text-red-400 hover:text-red-300">Delete this search</button>
+          <button className="text-sm font-medium text-red-500 hover:text-red-400">Delete this search</button>
         </form>
       )}
     </div>
