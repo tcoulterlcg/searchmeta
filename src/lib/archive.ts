@@ -38,7 +38,8 @@ export async function getArchive(): Promise<Client> {
           first_seen_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
         )`,
         `CREATE UNIQUE INDEX IF NOT EXISTS sales_source_ext ON sales(source, external_id)`,
-        `CREATE INDEX IF NOT EXISTS sales_sold_at ON sales(sold_at)`,
+        // Nothing reads this index, and every index adds to the monthly write count.
+        `DROP INDEX IF EXISTS sales_sold_at`,
         `CREATE VIRTUAL TABLE IF NOT EXISTS sales_fts USING fts5(title, content='sales', content_rowid='id', tokenize='unicode61 remove_diacritics 2')`,
         `CREATE TRIGGER IF NOT EXISTS sales_ai AFTER INSERT ON sales BEGIN
           INSERT INTO sales_fts(rowid, title) VALUES (new.id, new.title);
@@ -52,15 +53,20 @@ export async function getArchive(): Promise<Client> {
   return client;
 }
 
-/** Inserts sales, skipping ones we already have. Returns how many were new. */
+/**
+ * Inserts sales we don't have yet, and corrects the price of ones we do if it changed.
+ * Returns how many rows were added or corrected.
+ */
 export async function saveSales(rows: SaleInput[]): Promise<number> {
   if (!rows.length) return 0;
   const db = await getArchive();
   let added = 0;
   for (let i = 0; i < rows.length; i += 500) {
     const stmts: InStatement[] = rows.slice(i, i + 500).map((r) => ({
-      sql: `INSERT OR IGNORE INTO sales (source, external_id, title, url, image_url, price, sale_type, sold_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO sales (source, external_id, title, url, image_url, price, sale_type, sold_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(source, external_id) DO UPDATE SET price = excluded.price
+            WHERE excluded.price IS NOT NULL AND sales.price IS NOT excluded.price`,
       args: [r.source, r.external_id, r.title, r.url, r.image_url, r.price, r.sale_type, r.sold_at],
     }));
     const res = await db.batch(stmts, "write");
