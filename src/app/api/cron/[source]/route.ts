@@ -20,6 +20,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ sour
   }
 
   const debug = req.nextUrl.searchParams.get("debug") === "1";
-  const result = await runSource(createServiceClient(), source as SourceId, { debug });
+  const result = await runSource(createServiceClient(), source as SourceId, { debug, mode: req.nextUrl.searchParams.get("mode") ?? undefined });
   return NextResponse.json(result, { status: result.ok ? 200 : 500 });
 }

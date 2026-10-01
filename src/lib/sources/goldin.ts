@@ -75,8 +75,15 @@ function toListing(l: GoldinLot): ListingInput {
   };
 }
 
-export async function fetchGoldinListings(): Promise<{ listings: ListingInput[]; calls: number }> {
-  const [auctions, fixed] = await Promise.all([fetchAll({}), fetchAll({ auctionType: "Fixed_Price" })]);
+/** mode "buy_now" pulls only Buy Now listings (small and fast) for frequent checks. */
+export async function fetchGoldinListings(
+  mode: "all" | "buy_now" = "all",
+): Promise<{ listings: ListingInput[]; calls: number }> {
+  const empty = { lots: [] as GoldinLot[], calls: 0 };
+  const [auctions, fixed] = await Promise.all([
+    mode === "all" ? fetchAll({}) : Promise.resolve(empty),
+    fetchAll({ auctionType: "Fixed_Price" }),
+  ]);
   const byId = new Map<string, GoldinLot>();
   for (const l of [...auctions.lots, ...fixed.lots]) {
     if (l.lot_id && l.title && l.meta_slug) byId.set(l.lot_id, l);

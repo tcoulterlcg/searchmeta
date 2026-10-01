@@ -15,7 +15,11 @@ interface CrawlState {
 }
 
 /** Runs one source end to end: fetch → match → store → alert, and records the result. */
-export async function runSource(db: SupabaseClient, source: SourceId, opts: { debug?: boolean } = {}) {
+export async function runSource(
+  db: SupabaseClient,
+  source: SourceId,
+  opts: { debug?: boolean; mode?: string } = {},
+) {
   const { data: state } = await db.from("crawl_state").select("*").eq("source", source).maybeSingle<CrawlState>();
 
   try {
@@ -30,7 +34,7 @@ export async function runSource(db: SupabaseClient, source: SourceId, opts: { de
       watermark = r.newWatermark?.toISOString() ?? watermark;
       extra.calls = r.calls;
     } else if (source === "goldin") {
-      const r = await fetchGoldinListings();
+      const r = await fetchGoldinListings(opts.mode === "buy_now" ? "buy_now" : "all");
       listings = r.listings;
       extra.calls = r.calls;
     } else if (source === "fanatics") {
