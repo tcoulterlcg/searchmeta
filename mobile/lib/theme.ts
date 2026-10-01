@@ -1,5 +1,11 @@
 import { StyleSheet } from "react-native";
 
+export const fonts = {
+  light: "BricolageGrotesque_300Light",
+  bold: "BricolageGrotesque_700Bold",
+  heavy: "BricolageGrotesque_800ExtraBold",
+};
+
 export const colors = {
   ink: "#0b0d10",
   panel: "#13161b",
@@ -15,7 +21,7 @@ export const colors = {
 export const ui = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ink },
   pad: { paddingHorizontal: 16 },
-  h1: { color: colors.text, fontSize: 26, fontWeight: "700" },
+  h1: { color: colors.text, fontSize: 28, fontFamily: fonts.bold, letterSpacing: -0.5 },
   label: { color: colors.muted, fontSize: 12, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 },
   text: { color: colors.text, fontSize: 15 },
   muted: { color: colors.muted, fontSize: 14 },

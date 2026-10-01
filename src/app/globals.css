@@ -11,12 +11,20 @@
   --color-warn: #ffb547;
   --font-sans: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-bricolage), var(--font-sans);
 }
 
 html,
 body {
   background: var(--color-ink);
   color: var(--color-text);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 body {

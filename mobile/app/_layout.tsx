@@ -1,3 +1,9 @@
+import {
+  BricolageGrotesque_300Light,
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+  useFonts,
+} from "@expo-google-fonts/bricolage-grotesque";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -58,6 +64,8 @@ function Gate() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ BricolageGrotesque_300Light, BricolageGrotesque_700Bold, BricolageGrotesque_800ExtraBold });
+  if (!fontsLoaded) return null;
   return (
     <SafeAreaProvider>
       <SessionProvider>

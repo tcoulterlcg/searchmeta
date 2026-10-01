@@ -1,6 +1,6 @@
 import Svg, { Circle, Path } from "react-native-svg";
 import { Text, View } from "react-native";
-import { colors } from "../lib/theme";
+import { colors, fonts } from "../lib/theme";
 
 /** Converge mark: four sources flowing into one alert. */
 export function Logo({ size = 28 }: { size?: number }) {
@@ -19,8 +19,8 @@ export function Wordmark({ size = 28 }: { size?: number }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <Logo size={size} />
-      <Text style={{ color: colors.text, fontSize: size * 0.72, fontWeight: "300", letterSpacing: -0.5 }}>
-        search<Text style={{ fontWeight: "800" }}>meta</Text>
+      <Text style={{ color: colors.text, fontSize: size * 0.72, fontFamily: fonts.light, letterSpacing: -0.5 }}>
+        search<Text style={{ fontFamily: fonts.heavy }}>meta</Text>
       </Text>
     </View>
   );

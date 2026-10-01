@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { Bricolage_Grotesque } from "next/font/google";
-
-const wordmarkFont = Bricolage_Grotesque({ subsets: ["latin"], weight: ["300", "800"], display: "swap" });
+import { displayFont } from "@/lib/fonts";
 
 /** Converge mark: four sources flowing into one alert. Lines use the current text color. */
 export function Logo({ size = 28 }: { size?: number }) {
@@ -22,7 +20,7 @@ export function Wordmark() {
     <Link
       href="/"
       aria-label="SearchMeta home"
-      className={`${wordmarkFont.className} flex w-fit items-center gap-2 text-xl font-light tracking-tight`}
+      className={`${displayFont.className} flex w-fit items-center gap-2 text-xl font-light tracking-tight`}
     >
       <Logo />
       <span>
