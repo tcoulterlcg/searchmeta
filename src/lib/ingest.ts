@@ -7,6 +7,7 @@ const SOURCE_NAMES: Record<SourceId, string> = {
   ebay: "eBay",
   goldin: "Goldin",
   fanatics: "Fanatics Collect",
+  mycardpost: "MyCardPost",
   heritage: "Heritage",
 };
 

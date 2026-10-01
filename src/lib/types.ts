@@ -1,10 +1,11 @@
-export type SourceId = "ebay" | "goldin" | "fanatics" | "heritage";
+export type SourceId = "ebay" | "goldin" | "fanatics" | "mycardpost" | "heritage";
 export type BuyingFormat = "auction" | "buy_it_now" | "best_offer";
 
 export const SOURCES: { id: SourceId; name: string }[] = [
   { id: "ebay", name: "eBay" },
   { id: "goldin", name: "Goldin" },
   { id: "fanatics", name: "Fanatics Collect" },
+  { id: "mycardpost", name: "MyCardPost" },
   { id: "heritage", name: "Heritage" },
 ];
 

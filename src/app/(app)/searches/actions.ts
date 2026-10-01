@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { parseQuery } from "@/lib/query";
 
-const ALL_SOURCES = ["ebay", "goldin", "fanatics", "heritage"];
+const ALL_SOURCES = ["ebay", "goldin", "fanatics", "mycardpost", "heritage"];
 const FORMATS = ["auction", "buy_it_now", "best_offer"];
 
 function num(v: FormDataEntryValue | null) {

@@ -19,6 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ sour
     return NextResponse.json({ error: `unknown source: ${source}` }, { status: 404 });
   }
 
-  const result = await runSource(createServiceClient(), source as SourceId);
+  const debug = req.nextUrl.searchParams.get("debug") === "1";
+  const result = await runSource(createServiceClient(), source as SourceId, { debug });
   return NextResponse.json(result, { status: result.ok ? 200 : 500 });
 }
