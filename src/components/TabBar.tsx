@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const TABS = [
   { href: "/alerts", label: "Alerts", icon: "M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6Zm-2 16a2 2 0 0 0 4 0" },
   { href: "/searches", label: "Searches", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4" },
+  { href: "/sold", label: "Sold", icon: "M4 19V5m0 14h16M8 15l3-4 3 2 5-6" },
   { href: "/settings", label: "Settings", icon: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0-6v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" },
 ];
 

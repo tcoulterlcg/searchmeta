@@ -140,3 +140,66 @@ export async function fetchFanaticsListings(
   }
   return { listings: [...byId.values()], calls, queries: queries.length };
 }
+
+export interface SaleInput {
+  source: "fanatics";
+  external_id: string;
+  title: string;
+  url: string;
+  image_url: string | null;
+  price: number | null;
+  sale_type: string;
+  sold_at: string | null;
+}
+
+interface FanaticsSoldHit extends FanaticsHit {
+  soldDate?: number;
+}
+
+/** Looks up past Fanatics Collect sales (back to ~2021) matching a search. Up to 1,000 results. */
+export async function fetchFanaticsSold(keywords: string): Promise<SaleInput[]> {
+  const query = toSearchText(keywords);
+  if (!query) return [];
+  const key = await getSearchKey();
+  const res = await fetch(ALGOLIA, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-algolia-api-key": key,
+      "x-algolia-application-id": APP_ID,
+      Origin: "https://www.fanaticscollect.com",
+      Referer: "https://www.fanaticscollect.com/",
+    },
+    body: JSON.stringify({
+      requests: [
+        {
+          indexName: INDEX,
+          query,
+          hitsPerPage: 1000,
+          page: 0,
+          filters: '(status:"Sold")',
+          typoTolerance: false,
+          attributesToRetrieve: ["listingUuid", "title", "subtitle", "marketplace", "currentPrice", "images.primary", "soldDate"],
+          attributesToHighlight: [],
+        },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Fanatics sold search error ${res.status}`);
+  const data = (await res.json()) as { results: { hits: FanaticsSoldHit[] }[] };
+  return (data.results[0]?.hits ?? [])
+    .filter((h) => h.listingUuid && h.title)
+    .map((h) => {
+      const l = toListing(h);
+      return {
+        source: "fanatics" as const,
+        external_id: h.listingUuid,
+        title: l.title,
+        url: l.url,
+        image_url: l.image_url ?? null,
+        price: h.currentPrice ?? null,
+        sale_type: h.marketplace === "FIXED" ? "buy_it_now" : "auction",
+        sold_at: h.soldDate ? new Date(h.soldDate * 1000).toISOString() : null,
+      };
+    });
+}
