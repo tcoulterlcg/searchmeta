@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PushSettings } from "./PushSettings";
+import { HeritageForwarding } from "./HeritageForwarding";
 import { signOut } from "./actions";
 
 export default async function SettingsPage() {
@@ -16,6 +17,8 @@ export default async function SettingsPage() {
       </section>
 
       <PushSettings />
+
+      <HeritageForwarding />
 
       <section className="rounded-xl border border-line bg-panel p-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted">Text message alerts</div>

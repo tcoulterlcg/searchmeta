@@ -7,7 +7,7 @@ export default async function AlertsPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("matches")
-    .select("id, saved_search_id, listing_id, created_at, seen, listing:listings(*), saved_search:saved_searches(name)")
+    .select("id, saved_search_id, label, listing_id, created_at, seen, listing:listings(*), saved_search:saved_searches(name)")
     .order("created_at", { ascending: false })
     .limit(100);
   const matches = (data ?? []) as unknown as Match[];
@@ -46,7 +46,7 @@ export default async function AlertsPage() {
                   <div className="flex items-center gap-2 text-xs">
                     {!m.seen && <span className="h-2 w-2 rounded-full bg-signal" />}
                     <span className="font-semibold text-signal">{SOURCES.find((s) => s.id === l.source)?.name}</span>
-                    <span className="text-muted">· {m.saved_search?.name}</span>
+                    <span className="text-muted">· {m.saved_search?.name ?? m.label}</span>
                   </div>
                   <div className="mt-1 line-clamp-2 text-sm font-medium">{l.title}</div>
                   <div className="mt-1 flex items-center gap-2 text-sm">

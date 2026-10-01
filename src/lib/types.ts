@@ -51,7 +51,8 @@ export interface Listing extends ListingInput {
 
 export interface Match {
   id: string;
-  saved_search_id: string;
+  saved_search_id: string | null;
+  label: string | null;
   listing_id: string;
   created_at: string;
   seen: boolean;
