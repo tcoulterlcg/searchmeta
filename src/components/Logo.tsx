@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Logo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
@@ -9,11 +11,12 @@ export function Logo({ size = 28 }: { size?: number }) {
   );
 }
 
+/** Logo + name. Always links home (signed-in users land on Alerts). */
 export function Wordmark() {
   return (
-    <span className="flex items-center gap-2 text-lg font-bold tracking-tight">
+    <Link href="/" aria-label="SearchMeta home" className="flex w-fit items-center gap-2 text-lg font-bold tracking-tight">
       <Logo />
       Search<span className="text-signal">Meta</span>
-    </span>
+    </Link>
   );
 }
