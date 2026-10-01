@@ -1,26 +1,85 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SOURCES, type Match } from "@/lib/types";
 import { EnablePushBanner } from "@/components/EnablePush";
+import { AlertFilters } from "./AlertFilters";
 
-export default async function AlertsPage() {
+const LIMIT = 300;
+
+export default async function AlertsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; search?: string; site?: string; sort?: string }>;
+}) {
+  const { q, search, site, sort } = await searchParams;
   const supabase = await createClient();
-  const { data } = await supabase
+
+  let query = supabase
     .from("matches")
-    .select("id, saved_search_id, label, listing_id, created_at, seen, listing:listings(*), saved_search:saved_searches(name)")
+    .select("id, saved_search_id, label, listing_id, created_at, seen, listing:listings!inner(*), saved_search:saved_searches(name)")
     .order("created_at", { ascending: false })
-    .limit(100);
-  const matches = (data ?? []) as unknown as Match[];
+    .limit(LIMIT);
+
+  if (search) query = query.eq("saved_search_id", search);
+  const sites = (site ?? "").split(",").filter((s) => SOURCES.some((x) => x.id === s));
+  if (sites.length) query = query.in("listing.source", sites);
+  for (const word of (q ?? "").replace(/[%_\\]/g, " ").split(/\s+/).filter(Boolean).slice(0, 8)) {
+    query = query.ilike("listing.title", `%${word}%`);
+  }
+
+  const [{ data }, { data: searchRows }] = await Promise.all([
+    query,
+    supabase.from("saved_searches").select("id, name").order("name"),
+  ]);
+  const matches = ((data ?? []) as unknown as Match[]).filter((m) => m.listing);
+
+  if (sort === "price_asc" || sort === "price_desc") {
+    const dir = sort === "price_asc" ? 1 : -1;
+    matches.sort((a, b) => {
+      const pa = a.listing.price, pb = b.listing.price;
+      if (pa == null) return 1;
+      if (pb == null) return -1;
+      return (Number(pa) - Number(pb)) * dir;
+    });
+  } else if (sort === "ending") {
+    const t = (m: Match) => (m.listing.ends_at ? new Date(m.listing.ends_at).getTime() : Infinity);
+    const now = Date.now();
+    matches.sort((a, b) => {
+      const ta = t(a), tb = t(b);
+      return (ta < now ? Infinity : ta) - (tb < now ? Infinity : tb);
+    });
+  }
 
   const unseen = matches.filter((m) => !m.seen).map((m) => m.id);
   if (unseen.length) await supabase.from("matches").update({ seen: true }).in("id", unseen);
 
+  const filtered = Boolean(q || search || site);
+
   return (
     <div>
       <EnablePushBanner />
-      <h1 className="mb-5 text-2xl font-bold">Alerts</h1>
+      <div className="mb-4 flex items-baseline justify-between">
+        <h1 className="text-2xl font-bold">Alerts</h1>
+        <span className="text-sm text-muted">
+          {matches.length}{matches.length === LIMIT ? "+" : ""} {matches.length === 1 ? "listing" : "listings"}
+        </span>
+      </div>
 
-      {matches.length === 0 && (
+      <Suspense>
+        <AlertFilters
+          searches={(searchRows ?? []) as { id: string; name: string }[]}
+          sources={SOURCES}
+        />
+      </Suspense>
+
+      {matches.length === 0 && filtered && (
+        <p className="rounded-xl border border-dashed border-line p-8 text-center text-sm text-muted">
+          No alerts match these filters.
+        </p>
+      )}
+
+      {matches.length === 0 && !filtered && (
         <div className="rounded-xl border border-dashed border-line p-8 text-center">
           <p className="font-semibold">Nothing yet</p>
           <p className="mt-1 text-sm text-muted">New listings that match your saved searches show up here.</p>
