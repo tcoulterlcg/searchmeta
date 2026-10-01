@@ -69,14 +69,26 @@ const AUCTION_RE = /^\/en\/buy\/auction\/\d{4}\/[a-z0-9-]+\/?$/;
 const BUYNOW_RE = /^\/en\/buy\/_[a-z0-9-]+\/?$/;
 const lotRe = (auctionPath: string) => new RegExp(`^${auctionPath.replace(/\/$/, "")}/[a-z0-9-]+/?$`);
 
+/** Card text looks like "Type: retail 12/18 Shai Gilgeous-Alexander … Jersey 38,700 USD". */
+export function cleanCard(raw: string): { title: string; price: number | null } {
+  const priceMatch = raw.match(/([\d,]+(?:\.\d+)?)\s*USD\b/);
+  const title = raw
+    .replace(/^Type:\s*\w+\s*/i, "")
+    .replace(/(?:Estimate:?\s*)?[\d,]+(?:\.\d+)?\s*(?:[–-]\s*[\d,]+(?:\.\d+)?\s*)?USD\b.*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { title, price: priceMatch ? Number(priceMatch[1].replace(/,/g, "")) : null };
+}
+
 function toListing(f: Found, kind: "auction" | "buy_now"): ListingInput {
+  const { title, price } = cleanCard(f.title);
   return {
     source: "sothebys",
     external_id: f.path,
-    title: f.title,
+    title: title || f.title,
     url: `${BASE}${f.path}`,
     image_url: f.image && f.image.startsWith("http") ? f.image : null,
-    price: null,
+    price,
     currency: "USD",
     buying_formats: kind === "auction" ? ["auction"] : ["buy_it_now"],
     graded: null,

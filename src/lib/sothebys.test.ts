@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { collectLinks } from "./sources/sothebys";
+import { cleanCard, collectLinks } from "./sources/sothebys";
+
+describe("Sotheby's card text", () => {
+  it("strips the type label and pulls out the price", () => {
+    expect(cleanCard("Type: retail 12/18 Shai Gilgeous-Alexander 25/26 Oklahoma City Thunder Icon Edition Jersey 38,700 USD")).toEqual({
+      title: "12/18 Shai Gilgeous-Alexander 25/26 Oklahoma City Thunder Icon Edition Jersey",
+      price: 38700,
+    });
+    expect(cleanCard("Type: retail Pro Football Hall of Fame Archival Print").price).toBeNull();
+  });
+});
 
 describe("Sotheby's link collector", () => {
   it("finds auctions, buy-now items and lots", () => {
