@@ -1,4 +1,8 @@
-export type SourceId = "ebay" | "goldin" | "fanatics" | "mycardpost" | "sothebys" | "heritage";
+export type SourceId =
+  | "ebay" | "goldin" | "fanatics" | "mycardpost" | "sothebys" | "heritage"
+  | "myslabs" | "collectorcrypt"
+  | "lelands" | "memorylane" | "lotg" | "collectauctions"
+  | "sirius" | "wheatland" | "brockelman" | "sterling" | "detroitcity";
 export type BuyingFormat = "auction" | "buy_it_now" | "best_offer";
 
 export const SOURCES: { id: SourceId; name: string }[] = [
@@ -8,6 +12,17 @@ export const SOURCES: { id: SourceId; name: string }[] = [
   { id: "mycardpost", name: "MyCardPost" },
   { id: "sothebys", name: "Sotheby's" },
   { id: "heritage", name: "Heritage" },
+  { id: "myslabs", name: "MySlabs" },
+  { id: "lelands", name: "Lelands" },
+  { id: "memorylane", name: "Memory Lane" },
+  { id: "lotg", name: "Love of the Game" },
+  { id: "collectauctions", name: "Collect Auctions" },
+  { id: "sirius", name: "Sirius Sports Cards" },
+  { id: "wheatland", name: "Wheatland" },
+  { id: "brockelman", name: "Brockelman" },
+  { id: "sterling", name: "Sterling Sports" },
+  { id: "detroitcity", name: "Detroit City Sports" },
+  { id: "collectorcrypt", name: "Collector Crypt" },
 ];
 
 export interface SavedSearch {

@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { parseQuery } from "@/lib/query";
+import { SOURCES } from "@/lib/types";
 
-const ALL_SOURCES = ["ebay", "goldin", "fanatics", "mycardpost", "sothebys", "heritage"];
+const ALL_SOURCES: string[] = SOURCES.map((s) => s.id);
 const FORMATS = ["auction", "buy_it_now", "best_offer"];
 
 function num(v: FormDataEntryValue | null) {

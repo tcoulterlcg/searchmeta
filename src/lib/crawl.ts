@@ -5,9 +5,15 @@ import { fetchGoldinListings } from "./sources/goldin";
 import { fetchFanaticsListings } from "./sources/fanatics";
 import { fetchMyCardPostListings } from "./sources/mycardpost";
 import { fetchSothebysListings } from "./sources/sothebys";
+import { fetchMySlabsListings } from "./sources/myslabs";
+import { fetchCollectorCryptListings } from "./sources/collectorcrypt";
+import { fetchHouseListings, houseById, HOUSES } from "./sources/houses";
 import type { ListingInput, SourceId } from "./types";
 
-export const CRAWLABLE: SourceId[] = ["ebay", "goldin", "fanatics", "mycardpost", "sothebys"];
+export const CRAWLABLE: SourceId[] = [
+  "ebay", "goldin", "fanatics", "mycardpost", "sothebys", "myslabs", "collectorcrypt",
+  ...HOUSES.map((h) => h.id),
+];
 
 interface CrawlState {
   watermark: string | null;
@@ -26,7 +32,8 @@ export async function runSource(
     let listings: ListingInput[] = [];
     let watermark = state?.watermark ?? null;
     let cursor = state?.cursor ?? null;
-    const extra: Record<string, number> = {};
+    const extra: Record<string, number | string> = {};
+    const house = houseById(source);
 
     if (source === "ebay") {
       const r = await fetchNewEbayListings(watermark ? new Date(watermark) : null);
@@ -54,6 +61,22 @@ export async function runSource(
       cursor = String(r.nextCursor);
       extra.calls = r.calls;
       extra.auctions = r.auctions;
+    } else if (source === "myslabs") {
+      const r = await fetchMySlabsListings(cursor ? Number(cursor) : null);
+      listings = r.listings;
+      cursor = r.newestId != null ? String(r.newestId) : cursor;
+      extra.calls = r.calls;
+    } else if (source === "collectorcrypt") {
+      const r = await fetchCollectorCryptListings();
+      listings = r.listings;
+      extra.calls = r.calls;
+      if (opts.debug) extra.fields = r.fields;
+    } else if (house) {
+      const r = await fetchHouseListings(house, cursor ? Number(cursor) : 1);
+      listings = r.listings;
+      cursor = String(r.nextCursor);
+      extra.calls = r.calls;
+      extra.lotsOnPage = r.parsed;
     } else {
       throw new Error(`No crawler for ${source}`);
     }
