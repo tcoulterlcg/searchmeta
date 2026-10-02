@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PushSettings } from "./PushSettings";
+import { AlertPreview } from "./AlertPreview";
 import { HeritageForwarding } from "./HeritageForwarding";
 import { AvatarSettings } from "./AvatarSettings";
 import { ThemeSettings } from "./ThemeSettings";
@@ -26,6 +27,8 @@ export default async function SettingsPage() {
       <ThemeSettings />
 
       <PushSettings />
+
+      <AlertPreview />
 
       <HeritageForwarding />
 

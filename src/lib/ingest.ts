@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SearchIndex } from "./matcher";
-import { sendPushToUser } from "./push";
+import { sendPushToUser, type PushPayload } from "./push";
 import { PENDING_SOURCES, SOURCES, type ListingInput, type SavedSearch, type SourceId } from "./types";
 
 const SOURCE_NAMES = Object.fromEntries([...SOURCES, ...PENDING_SOURCES].map((s) => [s.id, s.name])) as Record<SourceId, string>;
@@ -14,6 +14,33 @@ const FORMAT_LABELS: Record<string, string> = { auction: "Auction", buy_it_now: 
 
 /** At most this many separate alerts per person from one check; any more are rolled into one summary alert. */
 const MAX_PUSHES_PER_RUN = 5;
+
+type AlertListing = Pick<ListingInput, "source" | "external_id" | "title" | "url" | "image_url" | "price" | "buying_formats">;
+
+/** The price and format line under a card's title, e.g. "$1,139 · Buy It Now". */
+export function alertDetails(listing: AlertListing): string {
+  return [
+    listing.price != null ? `$${listing.price.toLocaleString("en-US")}` : null,
+    FORMAT_LABELS[listing.buying_formats?.[0]] ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/**
+ * The phone alert for one match, laid out like an alert card: site and search on top,
+ * the card, then price and format. The website and the app send exactly this.
+ */
+export function alertPayload(listing: AlertListing, searchName: string): PushPayload {
+  const details = alertDetails(listing);
+  return {
+    title: `🟢 ${SOURCE_NAMES[listing.source]} · ${searchName}`,
+    body: details ? `${listing.title}\n${details}` : listing.title,
+    url: listing.url,
+    image: listing.image_url,
+    tag: `${listing.source}-${listing.external_id}`,
+  };
+}
 
 /**
  * `quiet` records matches without pushing. Used the first time a site is read, when
@@ -90,18 +117,7 @@ export async function ingestListings(
       continue;
     }
     sentTo.set(row.user_id, (sentTo.get(row.user_id) ?? 0) + 1);
-    // Laid out like an alert card: site and search on top, the card, then price and format.
-    const details = [
-      listing.price != null ? `$${listing.price.toLocaleString("en-US")}` : null,
-      FORMAT_LABELS[listing.buying_formats[0]] ?? null,
-    ].filter(Boolean);
-    pushes += await sendPushToUser(db, row.user_id, {
-      title: `🟢 ${SOURCE_NAMES[listing.source]} · ${search.name}`,
-      body: details.length ? `${listing.title}\n${details.join(" · ")}` : listing.title,
-      url: listing.url,
-      image: listing.image_url,
-      tag: `${listing.source}-${listing.external_id}`,
-    });
+    pushes += await sendPushToUser(db, row.user_id, alertPayload(listing, search.name));
     notified.push(row.id);
   }
   for (const [userId, more] of overflow) {
