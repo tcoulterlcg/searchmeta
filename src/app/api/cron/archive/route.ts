@@ -7,7 +7,7 @@ import {
   type FanaticsBackfillState,
 } from "@/lib/sources/fanatics";
 import { fetchMySlabsSoldPage, mySlabsSoldStep, newMySlabsSold, type MySlabsSoldState } from "@/lib/sources/myslabs";
-import { HOUSES, parseCatalog } from "@/lib/sources/houses";
+import { HOUSES, parseCatalog, probeResults } from "@/lib/sources/houses";
 import { getHtml, text } from "@/lib/sources/html";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { SaleInput } from "@/lib/types";
@@ -60,6 +60,13 @@ export async function GET(req: NextRequest) {
       sample: r.sales.slice(0, 2),
       firstText: r.firstText,
     });
+  }
+
+  // Test read of an auction house's past results, choosing one auction: ?probe=results&id=sirius
+  if (req.nextUrl.searchParams.get("probe") === "results") {
+    const house = HOUSES.find((h) => h.id === req.nextUrl.searchParams.get("id"));
+    if (!house) return NextResponse.json({ error: "unknown house" }, { status: 400 });
+    return NextResponse.json(await probeResults(house));
   }
 
   // Test read of an auction house's past-results page: ?probe=house&id=sirius&path=auctionresults.aspx

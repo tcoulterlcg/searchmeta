@@ -335,6 +335,96 @@ async function fetchCatalog(h: House, startPage: number) {
   return { listings: [...byId.values()], nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
 }
 
+/* ---------- past results ("catalog" software) ---------- */
+
+/** A browser-like visit to one of these sites: keeps cookies, follows redirects, and can submit the page's form. */
+function aspSession(startUrl: string) {
+  const jar = new Map<string, string>();
+  let url = startUrl;
+  let calls = 0;
+  const visit = async (target: string, init: RequestInit = {}): Promise<string> => {
+    let next = target;
+    let request = init;
+    for (let hop = 0; hop < 4; hop++) {
+      const res = await fetch(next, {
+        ...request,
+        redirect: "manual",
+        headers: {
+          "User-Agent": UA,
+          Accept: "text/html,application/xhtml+xml",
+          ...(jar.size ? { Cookie: [...jar].map(([k, v]) => `${k}=${v}`).join("; ") } : {}),
+          ...(request.headers ?? {}),
+        },
+        signal: AbortSignal.timeout(25_000),
+      });
+      calls++;
+      for (const c of res.headers.getSetCookie?.() ?? []) {
+        const pair = c.split(";")[0];
+        const eq = pair.indexOf("=");
+        if (eq > 0) jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+      }
+      const location = res.headers.get("location");
+      if (res.status >= 300 && res.status < 400 && location) {
+        next = new URL(location, next).toString();
+        request = {};
+        continue;
+      }
+      if (!res.ok) throw new Error(`${new URL(next).hostname} returned ${res.status}`);
+      url = next;
+      return res.text();
+    }
+    throw new Error("too many redirects");
+  };
+  /** Submits the form on `html` with some fields changed; `target` is the control that "caused" the submit. */
+  const submit = (html: string, fields: Record<string, string>, target = "") => {
+    const form = formFields(html);
+    form.set("__EVENTTARGET", target);
+    form.set("__EVENTARGUMENT", "");
+    for (const [k, v] of Object.entries(fields)) form.set(k, v);
+    return visit(url, {
+      method: "POST",
+      body: form.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Referer: url },
+    });
+  };
+  return { visit, submit, calls: () => calls, url: () => url };
+}
+
+/** The "Select Auction" dropdown on the past-results page. */
+export function auctionPicker(html: string): Dropdown | null {
+  return dropdowns(html).find((d) => d.options.filter((o) => /auction|ends\s+\d/i.test(o.label)).length >= 2) ?? null;
+}
+
+/** Test read of a house's past-results page, to see how it is laid out. Saves nothing. */
+export async function probeResults(h: House) {
+  const s = aspSession(`${h.base}/auctionresults.aspx`);
+  let html = await s.visit(s.url());
+  const picker = auctionPicker(html);
+  const out: Record<string, unknown> = {
+    dropdowns: dropdowns(html).map((d) => `${d.name}(${d.options.length}): ${d.options.slice(0, 3).map((o) => `${o.label}=${o.value}`).join(" | ")} ... ${d.options.at(-1)?.label}`),
+    lotsBefore: parseCatalog(h, html).length,
+  };
+  if (picker) {
+    const choice = picker.options.find((o) => /ends\s+\d/i.test(o.label));
+    if (choice) {
+      html = await s.submit(html, { [picker.name]: choice.value }, picker.name);
+      const at = html.search(/-LOT\d+\.aspx/i);
+      Object.assign(out, {
+        chose: choice.label,
+        lotsAfter: parseCatalog(h, html).length,
+        sample: parseCatalog(h, html).slice(0, 2),
+        raw: at >= 0 ? html.slice(Math.max(0, at - 700), at + 1500).replace(/\s+/g, " ") : text(html).slice(0, 600),
+        perPage: lotsPerPageControl(html),
+        jump: pageJump(html),
+        dropdownsAfter: dropdowns(html).map((d) => `${d.name.split("$").pop()}(${d.options.length})`),
+      });
+    }
+  }
+  out.calls = s.calls();
+  out.url = s.url();
+  return out;
+}
+
 export async function fetchHouseListings(h: House, cursor: number) {
   return h.platform === "gallery" ? fetchGallery(h, cursor) : fetchCatalog(h, cursor);
 }
