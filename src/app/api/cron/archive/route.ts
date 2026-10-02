@@ -6,7 +6,9 @@ import {
   newFanaticsBackfill,
   type FanaticsBackfillState,
 } from "@/lib/sources/fanatics";
-import { fetchMySlabsSoldPage } from "@/lib/sources/myslabs";
+import { fetchMySlabsSoldPage, mySlabsSoldStep, newMySlabsSold, type MySlabsSoldState } from "@/lib/sources/myslabs";
+import { HOUSES, parseCatalog } from "@/lib/sources/houses";
+import { getHtml, text } from "@/lib/sources/html";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { SaleInput } from "@/lib/types";
 
@@ -60,6 +62,24 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Test read of an auction house's past-results page: ?probe=house&id=sirius&path=auctionresults.aspx
+  if (req.nextUrl.searchParams.get("probe") === "house") {
+    const house = HOUSES.find((h) => h.id === req.nextUrl.searchParams.get("id"));
+    const path = req.nextUrl.searchParams.get("path") ?? "auctionresults.aspx";
+    if (!house || !/^[\w.\-?=&/]+$/.test(path)) return NextResponse.json({ error: "unknown house or path" }, { status: 400 });
+    const html = await (await getHtml(`${house.base}/${path}`)).text();
+    const links = [...new Set([...html.matchAll(/href=['"]([^'"#]+)['"]/g)].map((m) => m[1].replace(/\d+/g, "N")))];
+    const body = text(html.split(/<body[^>]*>/i)[1] ?? html);
+    const at = Math.max(0, body.search(/prices? realized|results|final/i));
+    return NextResponse.json({
+      lots: parseCatalog(house, html).length,
+      sample: parseCatalog(house, html).slice(0, 2),
+      links: links.filter((l) => /result|auction|archive|price/i.test(l)).slice(0, 25),
+      text: body.slice(at, at + 900),
+      lotText: text(html.split(/<div class="lot\s*">/)[1] ?? "").slice(0, 300),
+    });
+  }
+
   const start = Date.now();
   const deadline = start + 45_000;
   const errors: Record<string, string> = {};
@@ -93,6 +113,16 @@ export async function GET(req: NextRequest) {
       await setJob("fanatics-sold", fanatics);
     }
 
+    // MySlabs sold archive: a few pages a minute so the one-time copy stays gentle on their site.
+    let myslabs = (await getJob<MySlabsSoldState>("myslabs-sold")) ?? newMySlabsSold();
+    try {
+      myslabs = await mySlabsSoldStep(myslabs, saveSales, start + 52_000);
+    } catch (e) {
+      errors.myslabs = message(e);
+    } finally {
+      await setJob("myslabs-sold", myslabs);
+    }
+
     const failed = Object.keys(errors).length > 0;
     return NextResponse.json(
       {
@@ -109,6 +139,7 @@ export async function GET(req: NextRequest) {
           calls: fanatics.calls,
           finishedAt: fanatics.finishedAt,
         },
+        myslabs: { saved: myslabs.saved, nextPage: myslabs.page, finishedAt: myslabs.finishedAt },
         totals: req.nextUrl.searchParams.get("counts") === "1" ? await countSales() : undefined,
       },
       { status: failed ? 500 : 200 },

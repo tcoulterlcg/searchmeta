@@ -65,7 +65,6 @@ function SiteList({ sites }: { sites: Site[] }) {
               {s.name}
             </a>
             <div className="mt-0.5 text-sm text-muted">{s.what}</div>
-            <div className="mt-0.5 text-xs text-muted">Checked: {s.checked}</div>
           </div>
           <div className="shrink-0 pt-0.5">
             <StatusDot status={s.status} />
