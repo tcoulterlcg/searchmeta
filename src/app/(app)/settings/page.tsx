@@ -31,7 +31,7 @@ export default async function SettingsPage() {
 
       <section className="rounded-xl border border-line bg-panel p-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted">Text message alerts</div>
-        <p className="mt-2 text-sm text-muted">Coming soon.</p>
+        <p className="mt-2 text-sm text-muted">In Development</p>
       </section>
 
       <form action={signOut}>

@@ -57,7 +57,7 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
             <div className="flex flex-wrap gap-2 border-t border-line p-3">
               {SOURCES.map((src) =>
                 src.id === "heritage" ? (
-                  <Link key={src.id} href="/settings" className="chip opacity-60">{src.name} · set up in Settings</Link>
+                  <Link key={src.id} href="/settings" className="chip opacity-60">{src.name} · In Development</Link>
                 ) : (
                   <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
                 ),

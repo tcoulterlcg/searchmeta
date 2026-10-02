@@ -23,7 +23,7 @@ export async function HeritageForwarding() {
     <section className="rounded-xl border border-line bg-panel p-4">
       <div className="text-xs font-semibold uppercase tracking-wider text-muted">Heritage alerts</div>
       {!address ? (
-        <p className="mt-2 text-sm text-muted">Coming soon.</p>
+        <p className="mt-2 text-sm text-muted">In Development</p>
       ) : (
         <>
           <p className="mt-2 text-sm text-muted">
