@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SOURCES, type SavedSearch } from "@/lib/types";
 import { NotifyToggle } from "./NotifyToggle";
+import { DeleteSearch } from "./DeleteSearch";
 
 export default async function SearchesPage() {
   const supabase = await createClient();
@@ -36,7 +37,10 @@ export default async function SearchesPage() {
                   ))}
                 </div>
               </Link>
-              <NotifyToggle id={s.id} initial={s.notify} />
+              <div className="flex shrink-0 items-center gap-3">
+                <DeleteSearch id={s.id} name={s.name} />
+                <NotifyToggle id={s.id} initial={s.notify} />
+              </div>
             </div>
           </li>
         ))}

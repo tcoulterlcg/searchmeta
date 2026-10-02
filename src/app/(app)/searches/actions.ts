@@ -62,6 +62,14 @@ export async function deleteSearch(formData: FormData) {
   redirect("/searches");
 }
 
+/** Deletes a saved search (and its alerts) straight from the list. */
+export async function removeSearch(id: string) {
+  const supabase = await createClient();
+  await supabase.from("saved_searches").delete().eq("id", id);
+  revalidatePath("/searches");
+  revalidatePath("/alerts");
+}
+
 export async function toggleNotify(id: string, notify: boolean) {
   const supabase = await createClient();
   await supabase.from("saved_searches").update({ notify }).eq("id", id);
