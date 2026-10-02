@@ -84,6 +84,9 @@ export async function GET(req: NextRequest) {
       links: links.filter((l) => /result|auction|archive|price/i.test(l)).slice(0, 25),
       text: body.slice(at, at + 900),
       lotText: text(html.split(/<div class="lot\s*">/)[1] ?? "").slice(0, 300),
+      // What follows the search form: the results themselves.
+      afterForm: html.slice(html.lastIndexOf("GoBtn")).replace(/\s+/g, " ").slice(0, 3200),
+      size: html.length,
     });
   }
 
