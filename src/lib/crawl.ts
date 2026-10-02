@@ -15,6 +15,9 @@ export const CRAWLABLE: SourceId[] = [
   ...HOUSES.map((h) => h.id),
 ];
 
+/** Marks an auction house whose catalog has been read through once. */
+const SWEPT = "swept";
+
 interface CrawlState {
   watermark: string | null;
   cursor: string | null;
@@ -34,6 +37,8 @@ export async function runSource(
     let cursor = state?.cursor ?? null;
     const extra: Record<string, number | string> = {};
     const house = houseById(source);
+    // The first time a site is read, everything on it is "new". Record those matches without alerting.
+    let quiet = !state;
 
     if (source === "ebay") {
       const r = await fetchNewEbayListings(watermark ? new Date(watermark) : null);
@@ -78,6 +83,9 @@ export async function runSource(
       extra.calls = r.calls;
       extra.lotsOnPage = r.parsed;
       if (opts.debug) extra.note = r.note;
+      // A catalog can take several runs to read. Until one full pass is done, stay quiet.
+      quiet = watermark !== SWEPT;
+      if (r.nextCursor === 1) watermark = SWEPT;
     } else {
       throw new Error(`No crawler for ${source}`);
     }
@@ -86,7 +94,7 @@ export async function runSource(
       return { ok: true as const, source, debug: true, fetched: listings.length, sample: listings.slice(0, 3), ...extra };
     }
 
-    const result = await ingestListings(db, source, listings);
+    const result = await ingestListings(db, source, listings, { quiet });
     await db.from("crawl_state").upsert({
       source,
       watermark,

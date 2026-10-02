@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 
-const SOURCES = ["eBay", "Goldin", "Fanatics Collect", "MyCardPost", "Sotheby's"];
+const SOURCES = ["Goldin", "Fanatics Collect", "MyCardPost", "MySlabs", "Sotheby's"];
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
       </header>
 
       <section className="flex flex-1 flex-col justify-center py-16">
-        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">eBay · Goldin · Fanatics · MyCardPost · Sotheby&apos;s</p>
+        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">Goldin · Fanatics · MyCardPost · MySlabs · and more</p>
         <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
           One saved search.
           <br />
@@ -22,7 +22,8 @@ export default function Home() {
         </h1>
         <p className="mt-5 max-w-xl text-lg text-muted">
           Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on{" "}
-          {SOURCES.join(", ")}, your phone buzzes.
+          {SOURCES.join(", ")} or any other site we search, your phone buzzes.{" "}
+          <Link href="/about" className="text-signal hover:underline">See every site</Link>
         </p>
 
         <div className="mt-8 rounded-xl border border-line bg-panel p-4 font-mono text-sm">

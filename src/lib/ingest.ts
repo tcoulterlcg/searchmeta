@@ -10,7 +10,21 @@ const SOURCE_NAMES = Object.fromEntries([...SOURCES, ...PENDING_SOURCES].map((s)
  * search, stores only the listings that matched someone, records matches, and
  * pushes alerts for matches that are new.
  */
-export async function ingestListings(db: SupabaseClient, source: SourceId, batch: ListingInput[]) {
+const FORMAT_LABELS: Record<string, string> = { auction: "Auction", buy_it_now: "Buy It Now", best_offer: "Accepts Offers" };
+
+/** At most this many separate alerts per person from one check; any more are rolled into one summary alert. */
+const MAX_PUSHES_PER_RUN = 5;
+
+/**
+ * `quiet` records matches without pushing. Used the first time a site is read, when
+ * everything already listed there would otherwise arrive as a burst of alerts.
+ */
+export async function ingestListings(
+  db: SupabaseClient,
+  source: SourceId,
+  batch: ListingInput[],
+  opts: { quiet?: boolean } = {},
+) {
   if (batch.length === 0) return { matchedListings: 0, newMatches: 0, pushes: 0 };
 
   const index = new SearchIndex(await loadActiveSearches(db, source));
@@ -58,7 +72,9 @@ export async function ingestListings(db: SupabaseClient, source: SourceId, batch
   let pushes = 0;
   const notified: string[] = [];
   const done = new Set<string>();
-  for (const row of inserted ?? []) {
+  const sentTo = new Map<string, number>();
+  const overflow = new Map<string, number>();
+  for (const row of opts.quiet ? [] : inserted ?? []) {
     const search = searchById.get(row.saved_search_id);
     const listing = listingById.get(row.listing_id);
     if (!search?.notify || !listing) continue;
@@ -68,15 +84,33 @@ export async function ingestListings(db: SupabaseClient, source: SourceId, batch
     const key = `${row.user_id}:${row.listing_id}`;
     if (done.has(key)) continue;
     done.add(key);
-    const price = listing.price != null ? ` · $${listing.price.toLocaleString("en-US")}` : "";
+    if ((sentTo.get(row.user_id) ?? 0) >= MAX_PUSHES_PER_RUN) {
+      overflow.set(row.user_id, (overflow.get(row.user_id) ?? 0) + 1);
+      notified.push(row.id);
+      continue;
+    }
+    sentTo.set(row.user_id, (sentTo.get(row.user_id) ?? 0) + 1);
+    // Laid out like an alert card: site and search on top, the card, then price and format.
+    const details = [
+      listing.price != null ? `$${listing.price.toLocaleString("en-US")}` : null,
+      FORMAT_LABELS[listing.buying_formats[0]] ?? null,
+    ].filter(Boolean);
     pushes += await sendPushToUser(db, row.user_id, {
-      title: `${search.name} · ${SOURCE_NAMES[listing.source]}`,
-      body: `${listing.title}${price}`,
+      title: `🟢 ${SOURCE_NAMES[listing.source]} · ${search.name}`,
+      body: details.length ? `${listing.title}\n${details.join(" · ")}` : listing.title,
       url: listing.url,
       image: listing.image_url,
       tag: `${listing.source}-${listing.external_id}`,
     });
     notified.push(row.id);
+  }
+  for (const [userId, more] of overflow) {
+    pushes += await sendPushToUser(db, userId, {
+      title: `🟢 ${SOURCE_NAMES[source]} · ${more} more ${more === 1 ? "match" : "matches"}`,
+      body: "Open SearchMeta to see them all.",
+      url: "/alerts",
+      tag: `${source}-more`,
+    });
   }
   if (notified.length) {
     await db.from("matches").update({ notified_at: new Date().toISOString() }).in("id", notified);

@@ -48,7 +48,8 @@ export default async function SearchesPage() {
 function summary(s: SavedSearch): string[] {
   const out: string[] = [];
   out.push(
-    s.sources.length === SOURCES.length
+    // Heritage is set up separately in Settings, so it doesn't count toward "all".
+    SOURCES.every((x) => x.id === "heritage" || s.sources.includes(x.id))
       ? "All sites"
       : s.sources.map((id) => SOURCES.find((x) => x.id === id)?.name).join(", "),
   );

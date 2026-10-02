@@ -58,6 +58,7 @@ async function sendAppPush(db: SupabaseClient, userId: string, payload: PushPayl
     sound: "default",
     priority: "high",
     data: { url: payload.url },
+    ...(payload.image ? { richContent: { image: payload.image } } : {}),
     ...(payload.tag ? { collapseId: payload.tag } : {}),
   }));
 
