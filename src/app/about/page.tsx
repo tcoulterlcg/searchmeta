@@ -39,6 +39,7 @@ const AUCTION_HOUSES: Site[] = [
 const SALES_HISTORY = [
   { name: "Goldin", detail: "Past auction and Buy Now results back to 2012. Prices include the buyer's premium." },
   { name: "Fanatics Collect", detail: "Past auction and Buy Now results. Prices include the buyer's premium." },
+  { name: "Sirius Sports Cards", detail: "Final prices from more than 400 past auctions." },
 ];
 
 function StatusDot({ status }: { status: Status }) {
