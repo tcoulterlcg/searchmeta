@@ -5,6 +5,7 @@ import { SOURCES } from "@/lib/types";
 import { LIVE_SOURCES, searchLive, type LiveListing } from "@/lib/live";
 import Link from "next/link";
 import { SoldSort } from "./SoldSort";
+import { PriceChart } from "./PriceChart";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,11 @@ export default async function SoldPage({
     .map((s) => Number(s.price))
     .filter((n) => Number.isFinite(n) && n > 0);
   const latest = sales.find((s) => s.price != null && s.sold_at);
+  // Every dated, priced sale, for the trend chart.
+  const trend = sales
+    .filter((s) => s.sold_at && Number(s.price) > 0)
+    .map((s) => ({ t: Date.parse(s.sold_at as string), p: Number(s.price) }))
+    .filter((x) => Number.isFinite(x.t));
 
   return (
     <div>
@@ -143,6 +149,8 @@ export default async function SoldPage({
               </div>
             ))}
           </div>
+
+          <PriceChart points={trend} />
 
           {sales.length === 0 ? (
             <p className="mt-6 rounded-xl border border-dashed border-line p-8 text-center text-sm text-muted">

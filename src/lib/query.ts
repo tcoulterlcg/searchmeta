@@ -27,7 +27,9 @@ export function normalize(text: string): string[] {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9#/*]+/g, " ")
+    // Keep the point in a half grade ("8.5") so a search for "psa 8" does not match "PSA 8.5".
+    .replace(/[^a-z0-9#/*.]+/g, " ")
+    .replace(/\.(?!\d)|(?<!\d)\./g, " ")
     .trim()
     .split(/\s+/)
     .filter(Boolean);
