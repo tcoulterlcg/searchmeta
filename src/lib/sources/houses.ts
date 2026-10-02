@@ -408,6 +408,17 @@ export async function probeResults(h: House) {
     const choice = picker.options.find((o) => /ends\s+\d/i.test(o.label));
     if (choice) {
       html = await s.submit(html, { [picker.name]: choice.value }, picker.name);
+      const buttons = [...html.matchAll(/<input\b[^>]*type="(?:submit|image|button)"[^>]*>/gi)].map((m) => ({
+        name: m[0].match(/\bname="([^"]*)"/i)?.[1] ?? "",
+        value: decode(m[0].match(/\bvalue="([^"]*)"/i)?.[1] ?? ""),
+      }));
+      out.buttons = buttons.map((b) => `${b.name}=${b.value}`);
+      out.resultLinks = [...new Set([...html.matchAll(/href=['"]([^'"#]+)['"]/g)].map((m) => m[1].replace(/\d+/g, "N")))].filter((l) => /result|auctionid|price/i.test(l)).slice(0, 10);
+      const search = buttons.find((b) => /search/i.test(b.name) && !/reset/i.test(b.name));
+      if (parseCatalog(h, html).length === 0 && search) {
+        html = await s.submit(html, { [picker.name]: choice.value, [search.name]: search.value });
+        out.pressed = search.name;
+      }
       const at = html.search(/-LOT\d+\.aspx/i);
       Object.assign(out, {
         chose: choice.label,
