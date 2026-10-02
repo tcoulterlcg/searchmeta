@@ -19,11 +19,11 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
         {s && <input type="hidden" name="id" value={s.id} />}
 
         <Field label="Keywords">
-          <input name="keywords" className="input font-mono" required defaultValue={s?.keywords}
+          <input name="keywords" className="input" required defaultValue={s?.keywords}
             placeholder='kucherov shield -reprint' autoCapitalize="none" autoCorrect="off" />
           <details className="mt-2 text-sm text-muted">
             <summary className="cursor-pointer">Search tips (same as eBay)</summary>
-            <ul className="mt-2 space-y-1 font-mono text-xs">
+            <ul className="mt-2 space-y-1 text-xs">
               <li><b className="text-text">kucherov shield</b> all words, any order</li>
               <li><b className="text-text">&quot;logo patch&quot;</b> exact phrase</li>
               <li><b className="text-text">-reprint</b> exclude a word</li>

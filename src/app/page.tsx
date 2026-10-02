@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 
-const SITES = ["Goldin", "Fanatics Collect", "MyCardPost", "MySlabs", "Sotheby's"];
-
 const POINTS = [
   {
     title: "Save it once",
@@ -31,22 +29,22 @@ export default function Home() {
 
       <section className="flex flex-1 flex-col justify-center gap-12 py-14 lg:flex-row lg:items-center lg:gap-14 lg:py-20">
         <div className="min-w-0 flex-[1.25]">
+          <p className="mb-4 text-xs font-semibold uppercase leading-relaxed tracking-[0.16em] text-signal">
+            Goldin · Fanatics Collect · MyCardPost · MySlabs · and more
+          </p>
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:whitespace-nowrap sm:text-5xl">
             One saved search.
             <br />
             Every auction house.
           </h1>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
-            Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.
+            Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.{" "}
+            <Link href="/about" className="whitespace-nowrap text-signal hover:underline">See every site</Link>
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/login?mode=signup" className="btn-primary px-5 py-3 text-[15px]">Start free</Link>
             <Link href="/login" className="btn-ghost px-5 py-3 text-[15px]">Sign in</Link>
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-muted">
-            Searching {SITES.join(", ")} and more.{" "}
-            <Link href="/about" className="whitespace-nowrap text-signal hover:underline">See every site</Link>
-          </p>
         </div>
 
         {/* The whole product in two steps: what you type, and what lands on your phone. */}
@@ -56,7 +54,7 @@ export default function Home() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-muted">
               <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4" />
             </svg>
-            <span className="truncate font-mono text-[15px]">kucherov shield -reprint</span>
+            <span className="truncate text-base">kucherov shield -reprint</span>
           </div>
           <div className="flex justify-center py-0.5 text-muted">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

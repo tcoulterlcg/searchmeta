@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { displayFont, monoFont, uiFont } from "@/lib/fonts";
+import { displayFont, uiFont } from "@/lib/fonts";
 import { THEME_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${displayFont.variable} ${uiFont.variable} ${monoFont.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${displayFont.variable} ${uiFont.variable}`}>
       <head>
         {/* Apply the saved theme before paint so there's no flash. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

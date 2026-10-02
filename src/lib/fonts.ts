@@ -1,4 +1,4 @@
-import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
 
 /** Brand voice: logo wordmark and page titles only. */
 export const displayFont = Bricolage_Grotesque({
@@ -16,10 +16,3 @@ export const uiFont = Instrument_Sans({
   variable: "--font-instrument",
 });
 
-/** Search syntax only. */
-export const monoFont = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400"],
-  display: "swap",
-  variable: "--font-jetbrains",
-});

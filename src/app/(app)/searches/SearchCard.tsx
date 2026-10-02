@@ -17,7 +17,7 @@ export function SearchCard({ search: s, stats }: { search: SavedSearch; stats?: 
       <div className="flex items-start justify-between gap-4 p-4 pb-3">
         <Link href={`/searches/${s.id}`} className="min-w-0 flex-1">
           <div className={`truncate font-semibold ${s.notify ? "" : "text-muted"}`}>{s.name}</div>
-          {showKeywords && <div className="mt-0.5 truncate font-mono text-sm text-muted">{s.keywords}</div>}
+          {showKeywords && <div className="mt-0.5 truncate text-sm text-muted">{s.keywords}</div>}
           <div className="mt-1.5 text-xs text-muted">{summary(s).join(" · ")}</div>
         </Link>
         <NotifyToggle id={s.id} initial={s.notify} />

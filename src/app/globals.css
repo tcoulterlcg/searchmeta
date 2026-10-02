@@ -11,7 +11,6 @@
   --color-warn: #ffb547;
   --color-on-signal: #0b0d10;
   --font-sans: var(--font-instrument), ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
   --font-display: var(--font-bricolage), var(--font-sans);
 }
 

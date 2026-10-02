@@ -117,7 +117,7 @@ export default async function SoldPage({
           <input
             id="sold-q"
             name="q"
-            className="input font-mono"
+            className="input"
             defaultValue={query}
             placeholder='kucherov shield "1/1"'
             autoCapitalize="none"
