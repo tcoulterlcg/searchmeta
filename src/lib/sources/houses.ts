@@ -1,4 +1,4 @@
-import type { ListingInput, SourceId } from "../types";
+import type { ListingInput, SaleInput, SourceId } from "../types";
 import { decode, getHtml, money, text, UA } from "./html";
 
 /**
@@ -393,6 +393,85 @@ function aspSession(startUrl: string) {
 /** The "Select Auction" dropdown on the past-results page. */
 export function auctionPicker(html: string): Dropdown | null {
   return dropdowns(html).find((d) => d.options.filter((o) => /auction|ends\s+\d/i.test(o.label)).length >= 2) ?? null;
+}
+
+/**
+ * Houses whose past results we copy. Only Sirius: the other four houses on this software
+ * list /AuctionResults.aspx as off limits in their robots.txt.
+ */
+export const RESULTS_HOUSES = HOUSES.filter((h) => h.id === "sirius");
+
+/** "… Auction # 424 - Ends 9/24/26" -> ISO date (evening US time). */
+function endsDate(label: string): string | null {
+  const m = label.match(/Ends\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i);
+  if (!m) return null;
+  const year = Number(m[3]) + (m[3].length === 2 ? 2000 : 0);
+  return new Date(Date.UTC(year, Number(m[1]) - 1, Number(m[2]) + 1, 3)).toISOString();
+}
+
+/** Every lot in one past auction's results table. Lots with no final price (unsold) are left out. */
+export function parseResults(h: House, html: string): SaleInput[] {
+  const table = html.slice(html.indexOf('id="SearchGrid"'));
+  const sales: SaleInput[] = [];
+  for (const row of table.split(/<tr\b[^>]*>/i).slice(2)) {
+    const cells = [...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map((m) => m[1]);
+    if (cells.length < 5) continue;
+    const id = cells[2].match(/inventoryid=(\d+)/i)?.[1];
+    const title = text(cells[2]);
+    const price = money(text(cells[4]));
+    if (!id || !title || !price) continue;
+    sales.push({
+      source: h.id,
+      external_id: id,
+      title,
+      url: `${h.base}/LotDetail.aspx?inventoryid=${id}`,
+      image_url: null,
+      price,
+      sale_type: "auction",
+      sold_at: endsDate(text(cells[0])),
+    });
+  }
+  return sales;
+}
+
+export interface ResultsState {
+  /** Auction ids still to copy, newest first. */
+  queue: string[];
+  /** Highest auction id seen, so later checks only pick up newer auctions. */
+  newest: number;
+  listedAt: string | null;
+  auctions: number;
+  saved: number;
+}
+
+export const newResultsState = (): ResultsState => ({ queue: [], newest: 0, listedAt: null, auctions: 0, saved: 0 });
+
+const RELIST_EVERY_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * One step of the past-results copy: ONE request per run. Either refreshes the list of
+ * past auctions (twice a day) or copies the next auction on the list.
+ */
+export async function resultsStep(h: House, state: ResultsState, save: (rows: SaleInput[]) => Promise<number>) {
+  const page = `${h.base.replace("://www.", "://")}/auctionresults.aspx`;
+  if (!state.listedAt || Date.now() - Date.parse(state.listedAt) > RELIST_EVERY_MS) {
+    const html = await (await getHtml(page)).text();
+    const ids = (auctionPicker(html)?.options ?? [])
+      .map((o) => Number(o.value))
+      .filter((n) => Number.isInteger(n) && n > state.newest)
+      .sort((a, b) => b - a);
+    state.queue.push(...ids.map(String));
+    if (ids.length) state.newest = ids[0];
+    state.listedAt = new Date().toISOString();
+    return state;
+  }
+  const id = state.queue[0];
+  if (!id) return state;
+  const html = await (await getHtml(`${page}?auctionid=${id}`)).text();
+  state.saved += await save(parseResults(h, html));
+  state.auctions++;
+  state.queue.shift();
+  return state;
 }
 
 /** Test read of a house's past-results page, to see how it is laid out. Saves nothing. */

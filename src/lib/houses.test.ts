@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, pageJump, parseCatalog, parseGallery } from "./sources/houses";
+import { BLOCKED_HOUSES, formFields, HOUSES, lotsPerPageControl, pageJump, parseCatalog, parseGallery, parseResults } from "./sources/houses";
 import { parseMySlabs } from "./sources/myslabs";
 import { toCollectorCryptListing } from "./sources/collectorcrypt";
 
@@ -128,5 +128,29 @@ describe("Collector Crypt", () => {
       toCollectorCryptListing({ nftAddress: "Mint111", itemName: "2020 Prizm Justin Herbert PSA 10", listing: { price: "450", currency: "USDC" }, images: { front: "https://img/f.jpg" }, gradingCompany: "PSA" }),
     ).toMatchObject({ external_id: "Mint111", price: 450, image_url: "https://img/f.jpg", graded: true, url: "https://collectorcrypt.com/assets/solana/Mint111" });
     expect(toCollectorCryptListing({ nftAddress: "Mint222" })).toBeNull();
+  });
+});
+
+describe("auction-house past results", () => {
+  it("reads sold lots from a results table and skips lots with no final price", () => {
+    const row = (id: number, lot: number, title: string, final: string) =>
+      `<tr> <td> <a href="AuctionResults.aspx?auctionid=437">Sirius Sports Cards Auction # 424 - Ends 9/24/26</a> </td><td align="right"><a href='LotDetail.aspx?inventoryid=${id}'>${lot}</a></td><td><a href='LotDetail.aspx?inventoryid=${id}'>${title}</a></td><td align="right">$1.00</td><td align="right">${final}</td><td>OVER</td> </tr>`;
+    const html =
+      `<table id="SearchGrid"> <tr class="color_c"> <td><b>Auction Name</b></td><td><b>Lot Number</b></td><td><b>Title</b></td><td><b>Min Bid</b></td><td><b>Final Price</b></td><td><b>Status</b></td> </tr>` +
+      row(1748424, 1, "1950 BOWMAN 100 VIC RASCHI PSA EX-MT 6", "$60.00") +
+      row(1748426, 3, "1950 BOWMAN 217 CASEY STENGEL PSA NM 7", "$1,178.00") +
+      row(1748427, 4, "UNSOLD LOT", "$0.00") +
+      `</table>`;
+    const sales = parseResults(sirius, html);
+    expect(sales).toHaveLength(2);
+    expect(sales[1]).toMatchObject({
+      source: "sirius",
+      external_id: "1748426",
+      title: "1950 BOWMAN 217 CASEY STENGEL PSA NM 7",
+      price: 1178,
+      sale_type: "auction",
+      url: "https://www.siriussportsauctions.com/LotDetail.aspx?inventoryid=1748426",
+    });
+    expect(sales[0].sold_at?.slice(0, 10)).toBe("2026-09-25");
   });
 });

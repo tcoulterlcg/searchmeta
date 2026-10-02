@@ -7,7 +7,15 @@ import {
   type FanaticsBackfillState,
 } from "@/lib/sources/fanatics";
 import { fetchMySlabsSoldPage, mySlabsSoldStep, newMySlabsSold, type MySlabsSoldState } from "@/lib/sources/myslabs";
-import { HOUSES, parseCatalog, probeResults } from "@/lib/sources/houses";
+import {
+  HOUSES,
+  newResultsState,
+  parseCatalog,
+  probeResults,
+  RESULTS_HOUSES,
+  resultsStep,
+  type ResultsState,
+} from "@/lib/sources/houses";
 import { getHtml, text } from "@/lib/sources/html";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { SaleInput } from "@/lib/types";
@@ -133,6 +141,20 @@ export async function GET(req: NextRequest) {
       await setJob("myslabs-sold", myslabs);
     }
 
+    // Auction-house past results: one request a minute per house.
+    const houses: Record<string, unknown> = {};
+    for (const h of RESULTS_HOUSES) {
+      let st = (await getJob<ResultsState>(`${h.id}-results`)) ?? newResultsState();
+      try {
+        st = await resultsStep(h, st, saveSales);
+      } catch (e) {
+        errors[h.id] = message(e);
+      } finally {
+        await setJob(`${h.id}-results`, st);
+      }
+      houses[h.id] = { saved: st.saved, auctionsCopied: st.auctions, auctionsLeft: st.queue.length };
+    }
+
     const failed = Object.keys(errors).length > 0;
     return NextResponse.json(
       {
@@ -150,6 +172,7 @@ export async function GET(req: NextRequest) {
           finishedAt: fanatics.finishedAt,
         },
         myslabs: { saved: myslabs.saved, nextPage: myslabs.page, pausedUntil: myslabs.pausedUntil ?? null, refusals: myslabs.refusals ?? 0, finishedAt: myslabs.finishedAt },
+        houses,
         totals: req.nextUrl.searchParams.get("counts") === "1" ? await countSales() : undefined,
       },
       { status: failed ? 500 : 200 },
