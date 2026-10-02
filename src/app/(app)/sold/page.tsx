@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { matchesQuery, parseQuery, prepareText } from "@/lib/query";
 import { archiveEnabled, searchSales } from "@/lib/archive";
 import { SOURCES } from "@/lib/types";
@@ -42,7 +42,8 @@ export default async function SoldPage({
 
   if (mode === "live") {
     const { listings, failed } = query
-      ? await searchLive(supabase, query).catch((e) => {
+      ? // Auction-house lots are kept in a table only the server can read.
+        await searchLive(createServiceClient(), query).catch((e) => {
           console.error("live search failed", e);
           return { listings: [] as LiveListing[], failed: [...LIVE_SOURCES] };
         })
