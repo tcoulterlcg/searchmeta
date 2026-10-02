@@ -109,36 +109,49 @@ async function fetchGallery(h: House, cursor: number) {
     }
     page++;
   }
-  return { listings, nextCursor: page, calls, parsed, note: "" };
+  return { listings, lots: [] as CatalogLot[], nextCursor: page, calls, parsed, note: "" };
 }
 
 /* ---------- "catalog" software ---------- */
 
-/** Lots on a catalog page. */
-export function parseCatalog(h: House, html: string): ListingInput[] {
+/** A lot on a catalog page, with the bid it currently shows (null when nobody has bid yet). */
+export interface CatalogLot {
+  listing: ListingInput;
+  bid: number | null;
+}
+
+/** Lots on a catalog page, each with its current bid. */
+export function parseCatalogLots(h: House, html: string): CatalogLot[] {
   const ends = html.match(/<title>[^<]*Ends\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i);
   const endsAt = ends
     ? new Date(Date.UTC(Number(ends[3]) + (ends[3].length === 2 ? 2000 : 0), Number(ends[1]) - 1, Number(ends[2]) + 1, 3)).toISOString()
     : null;
-  const out: ListingInput[] = [];
+  const out: CatalogLot[] = [];
   for (const chunk of html.split(/<div class="lot\s*">/).slice(1)) {
     const link = chunk.match(/<a href='([^']*?([^'\/]+-LOT(\d+)\.aspx))'>([\s\S]*?)<\/a>/i);
     if (!link) continue;
     const title = text(link[4]);
     if (!title) continue;
     const img = chunk.match(/<img\b[^>]*?\b(?:data-src|data-original|src)=['"]([^'"]+)['"]/i)?.[1];
-    out.push(
-      listing(h, {
+    const bid = money(chunk.match(/Current Bid:\s*([^<]*)</i)?.[1]);
+    out.push({
+      listing: listing(h, {
         id: link[3],
         title,
         url: `${h.base}/${link[2]}`,
         image: img ? absolute(h.base, decode(img)) : null,
-        price: money(chunk.match(/Current Bid:\s*([^<]*)</i)?.[1]) ?? money(chunk.match(/Min Bid:\s*([^<]*)</i)?.[1]),
+        price: bid ?? money(chunk.match(/Min Bid:\s*([^<]*)</i)?.[1]),
         endsAt,
       }),
-    );
+      bid: bid && bid > 0 ? bid : null,
+    });
   }
   return out;
+}
+
+/** Lots on a catalog page. */
+export function parseCatalog(h: House, html: string): ListingInput[] {
+  return parseCatalogLots(h, html).map((l) => l.listing);
 }
 
 /** Every form field on the page with its current value, as the browser would submit it. */
@@ -256,9 +269,13 @@ async function fetchCatalog(h: House, startPage: number) {
 
   let html = await visit(url);
   const byId = new Map<string, ListingInput>();
+  const bids = new Map<string, number | null>();
   const add = (page: string) => {
-    const found = parseCatalog(h, page);
-    for (const l of found) byId.set(l.external_id, l);
+    const found = parseCatalogLots(h, page);
+    for (const l of found) {
+      byId.set(l.listing.external_id, l.listing);
+      bids.set(l.listing.external_id, l.bid);
+    }
     return found.length;
   };
   const firstCount = add(html);
@@ -332,7 +349,8 @@ async function fetchCatalog(h: House, startPage: number) {
     note += `; stopped: ${e instanceof Error ? e.message : String(e)}`;
   }
   note += `; redirects: ${redirects.join(" | ") || "none"}`;
-  return { listings: [...byId.values()], nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
+  const lots: CatalogLot[] = [...byId.values()].map((l) => ({ listing: l, bid: bids.get(l.external_id) ?? null }));
+  return { listings: [...byId.values()], lots, nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
 }
 
 /* ---------- past results ("catalog" software) ---------- */

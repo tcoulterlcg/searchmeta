@@ -8,6 +8,7 @@ import { fetchSothebysListings } from "./sources/sothebys";
 import { fetchMySlabsListings } from "./sources/myslabs";
 import { fetchCollectorCryptListings } from "./sources/collectorcrypt";
 import { fetchHouseListings, houseById, HOUSES } from "./sources/houses";
+import { trackLots } from "./track";
 import type { ListingInput, SourceId } from "./types";
 
 export const CRAWLABLE: SourceId[] = [
@@ -84,6 +85,16 @@ export async function runSource(
       // For auction houses the watermark holds the time that first pass finished.
       quiet = !watermark;
       if (!watermark && r.nextCursor === 1) watermark = new Date().toISOString();
+      if (!opts.debug) {
+        // Sold prices: keep each lot's latest bid, and save it as the sale once the auction is over.
+        try {
+          const t = await trackLots(db, house, r.lots, r.nextCursor === 1);
+          extra.tracked = t.tracked;
+          extra.sold = t.sold;
+        } catch (e) {
+          extra.trackError = e instanceof Error ? e.message : String(e);
+        }
+      }
     } else {
       throw new Error(`No crawler for ${source}`);
     }
