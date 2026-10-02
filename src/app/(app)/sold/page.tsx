@@ -1,9 +1,6 @@
-import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { matchesQuery, parseQuery, prepareText } from "@/lib/query";
-import { fetchFanaticsSold } from "@/lib/sources/fanatics";
-import { fetchGoldinSold } from "@/lib/sources/goldin";
-import type { SaleInput } from "@/lib/types";
-import { archiveEnabled, saveSales, searchSales } from "@/lib/archive";
+import { archiveEnabled, searchSales } from "@/lib/archive";
 import { SOURCES } from "@/lib/types";
 import { SoldSort } from "./SoldSort";
 
@@ -30,32 +27,6 @@ function median(xs: number[]) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-/** Pulls fresh results from the sources for this search and saves them to our archive. */
-async function refreshArchive(q: string) {
-  const db = createServiceClient();
-  const results = await Promise.allSettled([
-    fetchFanaticsSold(q),
-    fetchGoldinSold(q),
-  ]);
-  const rows: SaleInput[] = [];
-  for (const r of results) {
-    if (r.status === "fulfilled") rows.push(...r.value);
-    else console.error("sold refresh failed", r.reason);
-  }
-  if (archiveEnabled()) {
-    await saveSales(rows).catch((e) => console.error("archive save failed", e));
-    return;
-  }
-  for (let i = 0; i < rows.length; i += 500) {
-    await db
-      .from("sales")
-      .upsert(rows.slice(i, i + 500), {
-        onConflict: "source,external_id",
-        ignoreDuplicates: true,
-      });
-  }
-}
-
 export default async function SoldPage({
   searchParams,
 }: {
@@ -67,8 +38,6 @@ export default async function SoldPage({
 
   let sales: Sale[] = [];
   if (query) {
-    await refreshArchive(query);
-
     const compiled = parseQuery(query);
     if (archiveEnabled()) {
       const found = await searchSales(query).catch((e) => {

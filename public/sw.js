@@ -12,8 +12,8 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title, {
       body: data.body,
       // The card's own photo is the thumbnail (and the large picture where the phone supports one).
-      icon: data.image || "/icons/192?v=2",
-      badge: "/icons/192?v=2",
+      icon: data.image || "/icons/192?v=3",
+      badge: "/icons/192?v=3",
       image: data.image || undefined,
       tag: data.tag,
       data: { url: data.url },

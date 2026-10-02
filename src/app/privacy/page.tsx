@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
 
-export const metadata: Metadata = { title: "Privacy Policy · SearchMeta" };
+export const metadata: Metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="October 1, 2026">
+    <LegalPage title="Privacy Policy" updated="October 2, 2026">
       <p>
         SearchMeta (&quot;we&quot;, &quot;us&quot;) lets collectors save searches and get notified when a matching item is
         listed on supported marketplaces and auction houses. This policy explains what we collect and why.
@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       <ul>
         <li><b>Account:</b> your email address and an encrypted password, used to sign you in.</li>
         <li><b>Saved searches:</b> the keywords and filters you create, used to find matching listings.</li>
-        <li><b>Alerts:</b> the listings that matched your searches and whether you&apos;ve seen them.</li>
+        <li><b>Alerts:</b> the listings that matched your searches, whether you&apos;ve seen them, and which ones you&apos;re watching.</li>
         <li><b>Device tokens:</b> a push token for each phone or browser where you turn on notifications, used only to deliver alerts.</li>
         <li><b>Forwarded emails (optional):</b> if you forward auction-house alert emails to your SearchMeta address, we read them to find listings, keep a short excerpt so you can see what arrived, and discard the rest.</li>
       </ul>
@@ -43,7 +43,8 @@ export default function PrivacyPage() {
 
       <h2>Deleting your data</h2>
       <p>
-        You can delete saved searches at any time in the app. To delete your account and all associated data, email{" "}
+        You can delete saved searches at any time. To delete your account and everything tied to it, choose{" "}
+        <b>Delete account</b> at the bottom of Settings; it takes effect straight away. You can also email{" "}
         <a href="mailto:support@searchmeta.app">support@searchmeta.app</a> from the address you signed up with, and we&apos;ll
         delete it within 30 days.
       </p>

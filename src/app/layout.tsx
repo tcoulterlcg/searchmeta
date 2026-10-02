@@ -3,9 +3,21 @@ import "./globals.css";
 import { displayFont, uiFont } from "@/lib/fonts";
 import { THEME_SCRIPT } from "@/lib/theme";
 
+const DESCRIPTION =
+  "Save a search once and get an alert the moment your card is listed on Goldin, Fanatics Collect, MyCardPost, MySlabs and more.";
+
 export const metadata: Metadata = {
-  title: "SearchMeta",
-  description: "One alert for every auction house. Get notified the moment your card is listed on eBay, Goldin, Fanatics Collect, or Heritage.",
+  metadataBase: new URL("https://searchmeta.vercel.app"),
+  title: { default: "SearchMeta: one saved search, every auction house", template: "%s · SearchMeta" },
+  description: DESCRIPTION,
+  openGraph: {
+    title: "SearchMeta: one saved search, every auction house",
+    description: DESCRIPTION,
+    siteName: "SearchMeta",
+    type: "website",
+    url: "/",
+  },
+  twitter: { card: "summary_large_image" },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "SearchMeta", statusBarStyle: "black-translucent" },
 };

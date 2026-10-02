@@ -26,13 +26,13 @@ export default async function SettingsPage() {
         <div className="mt-2">{user?.email}</div>
       </section>
 
-      {user?.email && <AvatarSettings email={user.email} initialUrl={profile?.avatar_url ?? null} />}
-
-      <ThemeSettings />
-
       <PushSettings />
 
       <AlertPreview />
+
+      <ThemeSettings />
+
+      {user?.email && <AvatarSettings email={user.email} initialUrl={profile?.avatar_url ?? null} />}
 
       <HeritageForwarding />
 

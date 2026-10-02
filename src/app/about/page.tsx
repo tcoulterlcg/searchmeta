@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 
 export const metadata: Metadata = {
-  title: "About · SearchMeta",
+  title: "About",
   description: "Every marketplace and auction house SearchMeta searches for you.",
 };
 
