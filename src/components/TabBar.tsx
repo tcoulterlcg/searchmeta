@@ -18,11 +18,16 @@ export function TabBar() {
         {TABS.map((t) => {
           const active = path.startsWith(t.href);
           return (
-            <Link key={t.href} href={t.href}
-              className={`flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${active ? "text-signal" : "text-muted"}`}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
-              {t.label}
+            <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined}
+              className="group flex flex-1 justify-center py-1.5 outline-none">
+              {/* The highlight sits behind the icon and label; it grows a touch under the cursor. */}
+              <span className={`flex min-w-[76px] flex-col items-center gap-1 rounded-xl px-4 py-1.5 text-[11px] font-medium transition duration-150 ease-out group-hover:scale-105 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-signal motion-reduce:transform-none ${
+                active ? "bg-signal/10 text-signal" : "text-muted group-hover:bg-panel group-hover:text-text"
+              }`}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={t.icon} /></svg>
+                {t.label}
+              </span>
             </Link>
           );
         })}
