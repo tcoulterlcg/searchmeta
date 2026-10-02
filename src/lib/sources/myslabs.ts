@@ -93,8 +93,9 @@ export async function fetchMySlabsSoldPage(page: number) {
 }
 
 /**
- * Copy of the sold archive: walks every page once (oldest pages last), then
- * re-reads the first pages every hour for new sales.
+ * Copy of the sold archive. MySlabs refuses requests that come close together, so this
+ * reads ONE page per run (a run is a minute apart) and backs off when it is refused.
+ * It walks every page once, and re-reads page 1 every hour for new sales.
  */
 export interface MySlabsSoldState {
   /** Next page to read during the one-time copy. */
@@ -102,35 +103,39 @@ export interface MySlabsSoldState {
   saved: number;
   finishedAt: string | null;
   checkedAt: string | null;
+  /** Set after MySlabs refuses a request; nothing is read until this time. */
+  pausedUntil?: string | null;
+  refusals?: number;
 }
 
 export const newMySlabsSold = (): MySlabsSoldState => ({ page: 1, saved: 0, finishedAt: null, checkedAt: null });
 
-const SOLD_PAGES_PER_RUN = 3;
 const NEW_SALES_EVERY_MS = 60 * 60 * 1000;
+const BACK_OFF_MS = 30 * 60 * 1000;
 
 export async function mySlabsSoldStep(
   state: MySlabsSoldState,
   save: (rows: SaleInput[]) => Promise<number>,
-  deadline: number,
 ): Promise<MySlabsSoldState> {
-  // New sales appear on page 1. Read forward until a page has nothing we haven't saved.
-  if (!state.checkedAt || Date.now() - Date.parse(state.checkedAt) > NEW_SALES_EVERY_MS) {
-    for (let page = 1; page <= 5 && Date.now() < deadline; page++) {
-      const added = await save((await fetchMySlabsSoldPage(page)).sales);
-      state.saved += added;
-      if (added === 0) break;
-    }
-    state.checkedAt = new Date().toISOString();
-  }
-  for (let i = 0; i < SOLD_PAGES_PER_RUN && !state.finishedAt && Date.now() < deadline; i++) {
-    const { sales } = await fetchMySlabsSoldPage(state.page);
-    if (sales.length === 0) {
-      state.finishedAt = new Date().toISOString();
-      break;
-    }
+  if (state.pausedUntil && Date.parse(state.pausedUntil) > Date.now()) return state;
+  const checkNew = !state.checkedAt || Date.now() - Date.parse(state.checkedAt) > NEW_SALES_EVERY_MS;
+  if (!checkNew && state.finishedAt) return state;
+  try {
+    const { sales } = await fetchMySlabsSoldPage(checkNew ? 1 : state.page);
     state.saved += await save(sales);
-    state.page++;
+    state.pausedUntil = null;
+    if (checkNew) {
+      state.checkedAt = new Date().toISOString();
+      if (state.page === 1) state.page = 2;
+    } else if (sales.length === 0) {
+      state.finishedAt = new Date().toISOString();
+    } else {
+      state.page++;
+    }
+  } catch (e) {
+    if (!/returned (403|429)/.test(e instanceof Error ? e.message : "")) throw e;
+    state.refusals = (state.refusals ?? 0) + 1;
+    state.pausedUntil = new Date(Date.now() + BACK_OFF_MS).toISOString();
   }
   return state;
 }

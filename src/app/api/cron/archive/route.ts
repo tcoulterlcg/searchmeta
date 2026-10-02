@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
     // MySlabs sold archive: a few pages a minute so the one-time copy stays gentle on their site.
     let myslabs = (await getJob<MySlabsSoldState>("myslabs-sold")) ?? newMySlabsSold();
     try {
-      myslabs = await mySlabsSoldStep(myslabs, saveSales, start + 52_000);
+      myslabs = await mySlabsSoldStep(myslabs, saveSales);
     } catch (e) {
       errors.myslabs = message(e);
     } finally {
@@ -139,7 +139,7 @@ export async function GET(req: NextRequest) {
           calls: fanatics.calls,
           finishedAt: fanatics.finishedAt,
         },
-        myslabs: { saved: myslabs.saved, nextPage: myslabs.page, finishedAt: myslabs.finishedAt },
+        myslabs: { saved: myslabs.saved, nextPage: myslabs.page, pausedUntil: myslabs.pausedUntil ?? null, refusals: myslabs.refusals ?? 0, finishedAt: myslabs.finishedAt },
         totals: req.nextUrl.searchParams.get("counts") === "1" ? await countSales() : undefined,
       },
       { status: failed ? 500 : 200 },
