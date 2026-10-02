@@ -81,14 +81,15 @@ export function AlertFilters({ searches, sources }: Props) {
       <div className="flex flex-wrap items-center gap-2">
         {sources.length > MAX_CHIPS ? (
           // Too many sites for one row of chips: pick them from a dropdown instead.
-          <details className="relative">
-            <summary className={`chip list-none [&::-webkit-details-marker]:hidden ${selectedSites.length ? "border-signal bg-signal/10 text-signal" : ""}`}>
+          <details className="relative flex-1">
+            {/* Styled like the selects above so every dropdown on the page looks the same. */}
+            <summary className={`input flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden ${selectedSites.length ? "border-signal text-signal" : ""}`}>
               {selectedSites.length === 0
                 ? "All sites"
                 : selectedSites.length === 1
                   ? sources.find((s) => s.id === selectedSites[0])?.name ?? "1 site"
                   : `${selectedSites.length} sites`}
-              <span className="ml-1.5 text-xs">▾</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
             </summary>
             <div className="absolute left-0 z-20 mt-2 max-h-80 w-64 overflow-auto rounded-xl border border-line bg-panel p-1.5 shadow-xl">
               {sources.map((s) => (
@@ -123,7 +124,7 @@ export function AlertFilters({ searches, sources }: Props) {
           type="button"
           aria-pressed={Boolean(params.get("starred"))}
           onClick={() => update({ starred: params.get("starred") ? null : "1" })}
-          className={`chip ${params.get("starred") ? "border-signal bg-signal/10 text-signal" : ""}`}
+          className={`input w-auto cursor-pointer whitespace-nowrap ${params.get("starred") ? "border-signal text-signal" : ""}`}
         >
           ★ Watching
         </button>
