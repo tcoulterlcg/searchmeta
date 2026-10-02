@@ -211,7 +211,9 @@ export function pageJump(html: string): { box: string; button: { name: string; v
 const CATALOG_BUDGET_MS = 22_000;
 
 async function fetchCatalog(h: House, startPage: number) {
-  const url = `${h.base}/catalog.aspx`;
+  // Where the catalog lives. Updated if the site redirects us, so later form posts go to the right address.
+  let url = `${h.base}/catalog.aspx`;
+  const redirects: string[] = [];
   let calls = 0;
   const started = Date.now();
 
@@ -241,10 +243,12 @@ async function fetchCatalog(h: House, startPage: number) {
       const location = res.headers.get("location");
       if (res.status >= 300 && res.status < 400 && location) {
         next = new URL(location, next).toString();
+        redirects.push(`${request.method ?? "GET"} ${res.status} -> ${next}`);
         request = {};
         continue;
       }
       if (!res.ok) throw new Error(`${new URL(next).hostname} returned ${res.status}`);
+      if (/catalog\.aspx/i.test(next)) url = next;
       return res.text();
     }
     throw new Error("too many redirects");
@@ -327,7 +331,8 @@ async function fetchCatalog(h: House, startPage: number) {
     // Keep what was read if a later page can't be loaded.
     note += `; stopped: ${e instanceof Error ? e.message : String(e)}`;
   }
-  return { listings: [...byId.values()], nextCursor, calls, parsed: byId.size, note: note.slice(0, 1500) };
+  note += `; redirects: ${redirects.join(" | ") || "none"}`;
+  return { listings: [...byId.values()], nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
 }
 
 export async function fetchHouseListings(h: House, cursor: number) {

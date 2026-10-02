@@ -11,6 +11,9 @@ const FORMATS = [
 export function SearchForm({ search }: { search?: SavedSearch }) {
   const s = search;
   const sources = s?.sources ?? SOURCES.map((x) => x.id);
+  // Heritage is set up in Settings, not picked here.
+  const pickable = SOURCES.filter((x) => x.id !== "heritage").length;
+  const picked = SOURCES.filter((x) => x.id !== "heritage" && sources.includes(x.id)).length;
 
   return (
     <div>
@@ -43,15 +46,24 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
         </Field>
 
         <Field label="Sites">
-          <div className="flex flex-wrap gap-2">
-            {SOURCES.map((src) =>
-              src.id === "heritage" ? (
-                <Link key={src.id} href="/settings" className="chip opacity-60">{src.name} · set up in Settings</Link>
-              ) : (
-                <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
-              ),
-            )}
-          </div>
+          {/* One row of chips can't hold every site, so they live in a dropdown. */}
+          <details className="group rounded-lg border border-line bg-panel">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm [&::-webkit-details-marker]:hidden">
+              <span>
+                {picked >= pickable ? "All sites" : `${picked} of ${pickable} sites`}
+              </span>
+              <span className="text-xs text-muted group-open:rotate-180">▾</span>
+            </summary>
+            <div className="flex flex-wrap gap-2 border-t border-line p-3">
+              {SOURCES.map((src) =>
+                src.id === "heritage" ? (
+                  <Link key={src.id} href="/settings" className="chip opacity-60">{src.name} · set up in Settings</Link>
+                ) : (
+                  <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
+                ),
+              )}
+            </div>
+          </details>
         </Field>
 
         <Field label="Price">

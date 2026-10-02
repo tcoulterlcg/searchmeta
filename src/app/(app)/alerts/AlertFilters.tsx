@@ -3,6 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
+/** More sites than this won't fit on one row, so they move into a dropdown. */
+const MAX_CHIPS = 6;
+
 interface Props {
   searches: { id: string; name: string }[];
   sources: { id: string; name: string }[];
@@ -76,19 +79,46 @@ export function AlertFilters({ searches, sources }: Props) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {sources.map((s) => {
-          const on = selectedSites.includes(s.id);
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => toggleSite(s.id)}
-              className={`chip ${on ? "border-signal bg-signal/10 text-signal" : ""}`}
-            >
-              {s.name}
-            </button>
-          );
-        })}
+        {sources.length > MAX_CHIPS ? (
+          // Too many sites for one row of chips: pick them from a dropdown instead.
+          <details className="relative">
+            <summary className={`chip list-none [&::-webkit-details-marker]:hidden ${selectedSites.length ? "border-signal bg-signal/10 text-signal" : ""}`}>
+              {selectedSites.length === 0
+                ? "All sites"
+                : selectedSites.length === 1
+                  ? sources.find((s) => s.id === selectedSites[0])?.name ?? "1 site"
+                  : `${selectedSites.length} sites`}
+              <span className="ml-1.5 text-xs">▾</span>
+            </summary>
+            <div className="absolute left-0 z-20 mt-2 max-h-80 w-64 overflow-auto rounded-xl border border-line bg-panel p-1.5 shadow-xl">
+              {sources.map((s) => (
+                <label key={s.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-ink">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-signal"
+                    checked={selectedSites.includes(s.id)}
+                    onChange={() => toggleSite(s.id)}
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+          </details>
+        ) : (
+          sources.map((s) => {
+            const on = selectedSites.includes(s.id);
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => toggleSite(s.id)}
+                className={`chip ${on ? "border-signal bg-signal/10 text-signal" : ""}`}
+              >
+                {s.name}
+              </button>
+            );
+          })
+        )}
         {active && (
           <button
             type="button"
