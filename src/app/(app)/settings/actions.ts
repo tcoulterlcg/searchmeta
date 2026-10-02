@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -31,4 +31,15 @@ export async function saveAvatar(url: string | null): Promise<{ ok: boolean; err
   if (error) return { ok: false, error: error.message };
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+/** Permanently deletes the signed-in account and everything tied to it. */
+export async function deleteAccount(): Promise<{ error: string } | void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { error } = await createServiceClient().auth.admin.deleteUser(user.id);
+  if (error) return { error: error.message };
+  await supabase.auth.signOut();
+  redirect("/");
 }

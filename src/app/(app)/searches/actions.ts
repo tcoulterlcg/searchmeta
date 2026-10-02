@@ -39,6 +39,7 @@ export async function saveSearch(formData: FormData) {
     free_shipping: formData.get("free_shipping") === "on",
     located_in: formData.get("located_in") === "US" ? "US" : null,
     notify: formData.get("notify") !== "off",
+    delivery: formData.get("notify") === "feed" ? "feed" : "instant",
     updated_at: new Date().toISOString(),
   };
 

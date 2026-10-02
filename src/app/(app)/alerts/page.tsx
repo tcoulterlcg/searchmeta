@@ -4,24 +4,26 @@ import { createClient } from "@/lib/supabase/server";
 import { SOURCES, type Match } from "@/lib/types";
 import { EnablePushBanner } from "@/components/EnablePush";
 import { AlertFilters } from "./AlertFilters";
+import { StarButton } from "./StarButton";
 
 const LIMIT = 300;
 
 export default async function AlertsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; search?: string; site?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; search?: string; site?: string; sort?: string; starred?: string }>;
 }) {
-  const { q, search, site, sort } = await searchParams;
+  const { q, search, site, sort, starred } = await searchParams;
   const supabase = await createClient();
 
   let query = supabase
     .from("matches")
-    .select("id, saved_search_id, label, listing_id, created_at, seen, listing:listings!inner(*), saved_search:saved_searches(name)")
+    .select("id, saved_search_id, label, listing_id, created_at, seen, starred, listing:listings!inner(*), saved_search:saved_searches(name)")
     .order("created_at", { ascending: false })
     .limit(LIMIT);
 
   if (search) query = query.eq("saved_search_id", search);
+  if (starred) query = query.eq("starred", true);
   const sites = (site ?? "").split(",").filter((s) => SOURCES.some((x) => x.id === s));
   if (sites.length) query = query.in("listing.source", sites);
   for (const word of (q ?? "").replace(/[%_\\]/g, " ").split(/\s+/).filter(Boolean).slice(0, 8)) {
@@ -54,7 +56,7 @@ export default async function AlertsPage({
   const unseen = matches.filter((m) => !m.seen).map((m) => m.id);
   if (unseen.length) await supabase.from("matches").update({ seen: true }).in("id", unseen);
 
-  const filtered = Boolean(q || search || site);
+  const filtered = Boolean(q || search || site || starred);
 
   return (
     <div>
@@ -92,9 +94,8 @@ export default async function AlertsPage({
           const l = m.listing;
           if (!l) return null;
           return (
-            <li key={m.id}>
-              <a href={l.url} target="_blank" rel="noopener noreferrer"
-                className="flex gap-3 rounded-xl border border-line bg-panel p-3 transition hover:border-signal-dim">
+            <li key={m.id} className="flex rounded-xl border border-line bg-panel transition hover:border-signal-dim">
+              <a href={l.url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 flex-1 gap-3 p-3">
                 <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-ink">
                   {l.image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -113,14 +114,26 @@ export default async function AlertsPage({
                     <span className="text-muted">{formatFormats(l.buying_formats)}</span>
                     <span className="ml-auto text-xs text-muted">{ago(m.created_at)}</span>
                   </div>
+                  {l.ends_at && <EndsIn iso={l.ends_at} />}
                 </div>
               </a>
+              <StarButton id={m.id} initial={m.starred} />
             </li>
           );
         })}
       </ul>
     </div>
   );
+}
+
+/** "Ends in 2d 4h" for auctions with a known closing time; amber on the last day. */
+function EndsIn({ iso }: { iso: string }) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (!Number.isFinite(ms)) return null;
+  if (ms <= 0) return <div className="mt-1 text-xs text-muted">Ended</div>;
+  const m = Math.floor(ms / 60_000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  const left = d >= 1 ? `${d}d ${h % 24}h` : h >= 1 ? `${h}h ${m % 60}m` : `${Math.max(1, m)}m`;
+  return <div className={`mt-1 text-xs font-semibold ${d < 1 ? "text-warn" : "text-muted"}`}>Ends in {left}</div>;
 }
 
 function formatFormats(f: string[]) {

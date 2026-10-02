@@ -62,5 +62,6 @@ function summary(s: SavedSearch): string[] {
   if (s.condition !== "any") out.push(s.condition === "graded" ? "Graded" : "Ungraded");
   if (s.free_shipping) out.push("Free shipping");
   if (s.located_in) out.push("US only");
+  if (s.notify) out.push(s.delivery === "feed" ? "Daily feed" : "Instant");
   return out;
 }

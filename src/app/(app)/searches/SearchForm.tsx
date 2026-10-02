@@ -105,13 +105,15 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
 
         <Field label="Notifications">
           <label className="flex items-center justify-between rounded-lg border border-line bg-panel px-3 py-3 text-sm">
-            Push me when a new match is listed
-            <select name="notify" defaultValue={s?.notify === false ? "off" : "on"}
+            Alert me
+            <select name="notify" defaultValue={s?.notify === false ? "off" : s?.delivery === "feed" ? "feed" : "on"}
               className="rounded bg-ink px-2 py-1 text-text">
-              <option value="on">On</option>
+              <option value="on">Instantly</option>
+              <option value="feed">Daily feed</option>
               <option value="off">Off</option>
             </select>
           </label>
+          <p className="mt-1.5 text-xs text-muted">Instantly: a push for every new match. Daily feed: one push each morning with the day&apos;s matches.</p>
         </Field>
 
         <div className="flex gap-3">

@@ -6,6 +6,7 @@ import { AvatarSettings } from "./AvatarSettings";
 import { ThemeSettings } from "./ThemeSettings";
 import { signOut } from "./actions";
 import { isOwner } from "@/lib/owner";
+import { DeleteAccount } from "./DeleteAccount";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -53,6 +54,8 @@ export default async function SettingsPage() {
       <form action={signOut}>
         <button className="btn-ghost w-full">Sign out</button>
       </form>
+
+      <DeleteAccount />
     </div>
   );
 }

@@ -42,6 +42,8 @@ export interface SavedSearch {
   free_shipping: boolean;
   located_in: string | null;
   notify: boolean;
+  /** "instant" pushes each match as it appears; "feed" sends one daily summary. */
+  delivery: "instant" | "feed";
   created_at: string;
   updated_at: string;
 }
@@ -76,6 +78,7 @@ export interface Match {
   listing_id: string;
   created_at: string;
   seen: boolean;
+  starred: boolean;
   listing: Listing;
   saved_search: { name: string } | null;
 }

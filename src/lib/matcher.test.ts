@@ -42,7 +42,7 @@ describe("eBay keyword syntax", () => {
 const base: SavedSearch = {
   id: "s1", user_id: "u1", name: "t", keywords: "kucherov shield", search_description: false,
   sources: [], min_price: null, max_price: null, buying_formats: [], condition: "any",
-  free_shipping: false, located_in: null, notify: true, created_at: "", updated_at: "",
+  free_shipping: false, located_in: null, notify: true, delivery: "instant", created_at: "", updated_at: "",
 };
 const listing: ListingInput = {
   source: "ebay", external_id: "1", title: "Nikita Kucherov Shield PSA 9", url: "x",

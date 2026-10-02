@@ -43,7 +43,7 @@ export function AlertFilters({ searches, sources }: Props) {
     update({ site: [...set].join(",") || null });
   }
 
-  const active = params.get("q") || params.get("search") || params.get("site") || params.get("sort");
+  const active = params.get("q") || params.get("search") || params.get("site") || params.get("sort") || params.get("starred");
 
   return (
     <div className={`mb-5 space-y-3 transition-opacity ${pending ? "opacity-60" : ""}`}>
@@ -119,6 +119,14 @@ export function AlertFilters({ searches, sources }: Props) {
             );
           })
         )}
+        <button
+          type="button"
+          aria-pressed={Boolean(params.get("starred"))}
+          onClick={() => update({ starred: params.get("starred") ? null : "1" })}
+          className={`chip ${params.get("starred") ? "border-signal bg-signal/10 text-signal" : ""}`}
+        >
+          ★ Starred
+        </button>
         {active && (
           <button
             type="button"

@@ -105,6 +105,8 @@ export async function ingestListings(
     const search = searchById.get(row.saved_search_id);
     const listing = listingById.get(row.listing_id);
     if (!search?.notify || !listing) continue;
+    // Feed searches get one daily summary instead (see /api/cron/feed).
+    if (search.delivery === "feed") continue;
     // A brand-new search first matches everything already listed. Show those in Alerts,
     // but only push for listings that appear after the first 20 minutes.
     if (Date.now() - new Date(search.created_at).getTime() < 20 * 60_000) continue;
