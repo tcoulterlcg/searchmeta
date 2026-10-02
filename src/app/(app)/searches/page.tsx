@@ -1,13 +1,27 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { SOURCES, type SavedSearch } from "@/lib/types";
-import { NotifyToggle } from "./NotifyToggle";
-import { DeleteSearch } from "./DeleteSearch";
+import type { SavedSearch } from "@/lib/types";
+import { SearchCard, type SearchStats } from "./SearchCard";
 
 export default async function SearchesPage() {
   const supabase = await createClient();
   const { data } = await supabase.from("saved_searches").select("*").order("created_at", { ascending: false });
   const searches = (data ?? []) as SavedSearch[];
+
+  // How many alerts each search has found, and when the latest one came in.
+  const stats = new Map<string, SearchStats>(
+    await Promise.all(
+      searches.map(async (s) => {
+        const { data: latest, count } = await supabase
+          .from("matches")
+          .select("created_at", { count: "exact" })
+          .eq("saved_search_id", s.id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        return [s.id, { matches: count ?? 0, lastMatchAt: latest?.[0]?.created_at ?? null }] as const;
+      }),
+    ),
+  );
 
   return (
     <div>
@@ -26,46 +40,9 @@ export default async function SearchesPage() {
 
       <ul className="space-y-3">
         {searches.map((s) => (
-          <li key={s.id} className="rounded-xl border border-line bg-panel p-4">
-            <div className="flex items-start justify-between gap-3">
-              <Link href={`/searches/${s.id}`} className="min-w-0 flex-1">
-                <div className="truncate font-semibold">{s.name}</div>
-                <div className="mt-0.5 truncate font-mono text-sm text-muted">{s.keywords}</div>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-xs text-muted">
-                  {summary(s).map((t) => (
-                    <span key={t} className="rounded bg-ink px-2 py-0.5">{t}</span>
-                  ))}
-                </div>
-              </Link>
-              <div className="flex shrink-0 items-center gap-3">
-                <DeleteSearch id={s.id} name={s.name} />
-                <NotifyToggle id={s.id} initial={s.notify} />
-              </div>
-            </div>
-          </li>
+          <SearchCard key={s.id} search={s} stats={stats.get(s.id)} />
         ))}
       </ul>
     </div>
   );
-}
-
-function summary(s: SavedSearch): string[] {
-  const out: string[] = [];
-  out.push(
-    // Heritage is set up separately in Settings, so it doesn't count toward "all".
-    SOURCES.every((x) => x.id === "heritage" || s.sources.includes(x.id))
-      ? "All sites"
-      : s.sources.map((id) => SOURCES.find((x) => x.id === id)?.name).join(", "),
-  );
-  if (s.min_price != null || s.max_price != null) {
-    out.push(`$${s.min_price ?? 0}–${s.max_price != null ? `$${s.max_price}` : "any"}`);
-  }
-  if (s.buying_formats.length) {
-    out.push(s.buying_formats.map((f) => ({ auction: "Auction", buy_it_now: "Buy It Now", best_offer: "Best Offer" })[f]).join(" / "));
-  }
-  if (s.condition !== "any") out.push(s.condition === "graded" ? "Graded" : "Ungraded");
-  if (s.free_shipping) out.push("Free shipping");
-  if (s.located_in) out.push("US only");
-  if (s.notify) out.push(s.delivery === "feed" ? "Daily feed" : "Instant");
-  return out;
 }

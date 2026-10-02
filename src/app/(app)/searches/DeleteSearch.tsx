@@ -23,8 +23,8 @@ export function DeleteSearch({ id, name }: { id: string; name: string }) {
   }
   return (
     <button type="button" aria-label={`Delete ${name}`} onClick={() => setConfirming(true)}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-ink hover:text-red-500">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-ink hover:text-red-500">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v6m4-6v6" />
       </svg>
     </button>
