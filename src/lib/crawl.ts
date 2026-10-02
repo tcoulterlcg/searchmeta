@@ -15,9 +15,6 @@ export const CRAWLABLE: SourceId[] = [
   ...HOUSES.map((h) => h.id),
 ];
 
-/** Marks an auction house whose catalog has been read through once. */
-const SWEPT = "swept";
-
 interface CrawlState {
   watermark: string | null;
   cursor: string | null;
@@ -84,8 +81,9 @@ export async function runSource(
       extra.lotsOnPage = r.parsed;
       if (opts.debug) extra.note = r.note;
       // A catalog can take several runs to read. Until one full pass is done, stay quiet.
-      quiet = watermark !== SWEPT;
-      if (r.nextCursor === 1) watermark = SWEPT;
+      // For auction houses the watermark holds the time that first pass finished.
+      quiet = !watermark;
+      if (!watermark && r.nextCursor === 1) watermark = new Date().toISOString();
     } else {
       throw new Error(`No crawler for ${source}`);
     }
@@ -95,7 +93,7 @@ export async function runSource(
     }
 
     const result = await ingestListings(db, source, listings, { quiet });
-    await db.from("crawl_state").upsert({
+    const { error: stateError } = await db.from("crawl_state").upsert({
       source,
       watermark,
       cursor,
@@ -103,6 +101,8 @@ export async function runSource(
       last_status: "ok",
       last_count: listings.length,
     });
+    // If the run can't be recorded the schedule can't pace itself, so report it instead of hiding it.
+    if (stateError) throw new Error(`could not record run: ${stateError.message}`);
     return { ok: true as const, source, fetched: listings.length, ...extra, ...result };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
