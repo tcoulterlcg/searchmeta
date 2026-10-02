@@ -1,52 +1,98 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 
-const SOURCES = ["Goldin", "Fanatics Collect", "MyCardPost", "MySlabs", "Sotheby's"];
+const SITES = ["Goldin", "Fanatics Collect", "MyCardPost", "MySlabs", "Sotheby's"];
+
+const POINTS = [
+  {
+    title: "Save it once",
+    body: "Type what you collect, the same way you would on eBay. Add a price range or grade if you want.",
+  },
+  {
+    title: "We watch every site",
+    body: "Marketplaces and auction houses are checked around the clock, so you don't have to keep a tab open on each.",
+  },
+  {
+    title: "One alert, straight to the listing",
+    body: "Get a push the moment it's listed, or one daily feed. Check what it sold for before you bid.",
+  },
+];
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)]">
+    <main className="mx-auto flex min-h-dvh max-w-5xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)] sm:px-6">
       <header className="flex items-center justify-between">
         <Wordmark />
-        <nav className="flex items-center gap-5 text-sm text-muted">
+        <nav className="flex items-center gap-6 text-[15px] text-muted">
           <Link href="/about" className="hover:text-text">About</Link>
           <Link href="/login" className="hover:text-text">Sign in</Link>
         </nav>
       </header>
 
-      <section className="flex flex-1 flex-col justify-center py-16">
-        <p className="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-signal">Goldin · Fanatics · MyCardPost · MySlabs · and more</p>
-        <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-          One saved search.
-          <br />
-          Every auction house.
-        </h1>
-        <p className="mt-5 max-w-xl text-lg text-muted">
-          Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on{" "}
-          {SOURCES.join(", ")} or any other site we search, your phone buzzes.{" "}
-          <Link href="/about" className="text-signal hover:underline">See every site</Link>
-        </p>
+      <section className="flex flex-1 flex-col justify-center gap-12 py-14 lg:flex-row lg:items-center lg:gap-14 lg:py-20">
+        <div className="min-w-0 flex-[1.25]">
+          <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:whitespace-nowrap sm:text-5xl">
+            One saved search.
+            <br />
+            Every auction house.
+          </h1>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
+            Tell SearchMeta what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/login?mode=signup" className="btn-primary px-5 py-3 text-[15px]">Start free</Link>
+            <Link href="/login" className="btn-ghost px-5 py-3 text-[15px]">Sign in</Link>
+          </div>
+          <p className="mt-6 text-sm leading-relaxed text-muted">
+            Searching {SITES.join(", ")} and more.{" "}
+            <Link href="/about" className="whitespace-nowrap text-signal hover:underline">See every site</Link>
+          </p>
+        </div>
 
-        <div className="mt-8 rounded-xl border border-line bg-panel p-4 font-mono text-sm">
-          <div className="text-muted">saved search</div>
-          <div className="mt-1 text-text">kucherov shield -reprint (psa,bgs)</div>
-          <div className="mt-4 flex items-start gap-3 rounded-lg bg-ink p-3 font-sans">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-signal shadow-[0_0_12px_#3ef08a]" />
-            <div>
-              <div className="text-sm font-semibold">Kucherov Shield · eBay</div>
-              <div className="text-sm text-muted">2015 UD The Cup Nikita Kucherov Shield Patch 1/1 BGS 9.5 · $86,806.86</div>
+        {/* The whole product in two steps: what you type, and what lands on your phone. */}
+        <div className="min-w-0 flex-1 space-y-2.5">
+          <div className="text-[13px] text-muted">You save a search</div>
+          <div className="flex h-[52px] items-center gap-2.5 rounded-xl border border-line bg-panel px-3.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-muted">
+              <path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 4 4" />
+            </svg>
+            <span className="truncate font-mono text-[15px]">kucherov shield -reprint</span>
+          </div>
+          <div className="flex justify-center py-0.5 text-muted">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 5v14m-6-6 6 6 6-6" />
+            </svg>
+          </div>
+          <div className="text-[13px] text-muted">Your phone gets this</div>
+          <div className="flex gap-3 rounded-[14px] border border-signal-dim bg-panel p-3.5">
+            {/* Stand-in for the card photo. */}
+            <div aria-hidden="true" className="flex h-[88px] w-16 shrink-0 items-end overflow-hidden rounded-lg bg-ink p-1.5">
+              <div className="h-1/3 w-full rounded bg-line" />
+            </div>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex items-center gap-1.5 text-[13px]">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-signal" />
+                <span className="font-semibold text-signal">Goldin</span>
+                <span className="truncate text-muted">· Kucherov Shield</span>
+              </div>
+              <div className="text-[15px] font-medium leading-snug">2015 UD The Cup Nikita Kucherov Shield Patch 1/1 BGS 9.5</div>
+              <div className="text-[15px]">
+                <span className="font-bold">$86,806</span> <span className="text-muted">· Auction</span>{" "}
+                <span className="whitespace-nowrap font-semibold text-warn">· Ends in 2d 4h</span>
+              </div>
             </div>
           </div>
+          <div className="text-[13px] text-muted">Example alert. One tap opens the listing on the seller&apos;s site.</div>
         </div>
+      </section>
 
-        <div className="mt-8 flex gap-3">
-          <Link href="/login?mode=signup" className="btn-primary">
-            Start free
-          </Link>
-          <Link href="/login" className="btn-ghost">
-            Sign in
-          </Link>
-        </div>
+      <section className="grid gap-8 border-t border-line py-8 pb-16 sm:grid-cols-3">
+        {POINTS.map((p) => (
+          <div key={p.title}>
+            <h2 className="font-semibold">{p.title}</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">{p.body}</p>
+          </div>
+        ))}
       </section>
     </main>
   );
