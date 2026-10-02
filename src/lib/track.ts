@@ -6,10 +6,12 @@ import type { SaleInput } from "./types";
 /**
  * Sold prices from the auctions we watch.
  *
- * Every time an auction house's catalog is read, the latest bid on each lot is kept in
- * `tracked_lots`. Once an auction is over and a lot has left the catalog, the last bid we
- * saw is saved to the sold archive as its sale price, and the lot is dropped from the table.
- * Lots that never got a bid are dropped without a sale.
+ * Every time an auction house's catalog is read, each lot is kept in `tracked_lots` with
+ * its latest bid. A lot's sale is saved to the sold archive in one of two ways:
+ *  - the catalog shows a "Final Price" once the auction closes (the normal case), or
+ *  - the auction is over and the lot left the catalog before we saw a final price, in
+ *    which case the last bid we saw is used.
+ * Lots that never got a bid are not saved.
  *
  * Houses whose published results we already copy are skipped, so nothing is saved twice.
  */
@@ -26,26 +28,27 @@ interface TrackedLot {
   url: string;
   image_url: string | null;
   bid: number | null;
+  final: number | null;
   ends_at: string | null;
   last_seen_at: string;
+  saved_at?: string | null;
 }
 
 export const tracksSales = (h: House) => !RESULTS_HOUSES.some((r) => r.id === h.id);
 
-/** The sale to record for a lot that has closed, or null if it never got a bid. */
-export function saleFrom(lot: TrackedLot): SaleInput | null {
-  if (!lot.bid || lot.bid <= 0) return null;
-  const day = (lot.ends_at ?? lot.last_seen_at).slice(0, 10).replace(/-/g, "");
+/** The sale to record for a lot, or null if it has no price to record. `soldAt` is used when the end date is unknown. */
+export function saleFrom(lot: TrackedLot, soldAt: string): SaleInput | null {
+  const price = lot.final ?? lot.bid;
+  if (!price || price <= 0) return null;
   return {
     source: lot.source as SaleInput["source"],
-    // Lot numbers repeat from one auction to the next, so the auction's date is part of the id.
-    external_id: `${lot.external_id}-${day}`,
+    external_id: lot.external_id,
     title: lot.title,
     url: lot.url,
     image_url: lot.image_url,
-    price: lot.bid,
+    price,
     sale_type: "auction",
-    sold_at: lot.ends_at ?? lot.last_seen_at,
+    sold_at: lot.ends_at && Date.parse(lot.ends_at) < Date.parse(soldAt) ? lot.ends_at : soldAt,
   };
 }
 
@@ -56,49 +59,74 @@ export function hasClosed(lot: Pick<TrackedLot, "ends_at" | "last_seen_at">, now
   return lot.ends_at ? Date.parse(lot.ends_at) < now : unseen > NO_DATE_GONE_AFTER_MS;
 }
 
+async function markSaved(db: SupabaseClient, source: string, ids: string[], at: string) {
+  for (let i = 0; i < ids.length; i += 200) {
+    const { error } = await db.from("tracked_lots").update({ saved_at: at }).eq("source", source).in("external_id", ids.slice(i, i + 200));
+    if (error) throw error;
+  }
+}
+
 /**
- * Records the bids just read, and when `passComplete` (the whole catalog has been read)
- * saves the sale price of lots that have closed.
+ * Records the lots just read and saves any sales they reveal. When `passComplete`
+ * (the whole catalog has been read) it also closes out lots that have left the catalog.
  */
 export async function trackLots(db: SupabaseClient, h: House, lots: CatalogLot[], passComplete: boolean) {
   if (!tracksSales(h) || !archiveEnabled()) return { tracked: 0, sold: 0 };
   const now = new Date();
-  const rows: TrackedLot[] = lots.map(({ listing, bid }) => ({
+  const nowIso = now.toISOString();
+  const rows: TrackedLot[] = lots.map(({ listing, bid, final }) => ({
     source: h.id,
     external_id: listing.external_id,
     title: listing.title,
     url: listing.url,
     image_url: listing.image_url ?? null,
     bid,
+    final,
     ends_at: listing.ends_at ?? null,
-    last_seen_at: now.toISOString(),
+    last_seen_at: nowIso,
   }));
   for (let i = 0; i < rows.length; i += 500) {
     const { error } = await db.from("tracked_lots").upsert(rows.slice(i, i + 500), { onConflict: "source,external_id" });
     if (error) throw error;
   }
-  if (!passComplete) return { tracked: rows.length, sold: 0 };
 
-  const { data, error } = await db
+  // Lots showing a final price that we have not saved yet.
+  let sold = 0;
+  const { data: unsaved, error: unsavedError } = await db
+    .from("tracked_lots")
+    .select("*")
+    .eq("source", h.id)
+    .is("saved_at", null)
+    .not("final", "is", null)
+    .limit(5000);
+  if (unsavedError) throw unsavedError;
+  const finals = (unsaved ?? []) as TrackedLot[];
+  if (finals.length) {
+    const sales = finals.map((l) => saleFrom(l, nowIso)).filter((s): s is SaleInput => s !== null);
+    await saveSales(sales);
+    await markSaved(db, h.id, finals.map((l) => l.external_id), nowIso);
+    sold += sales.length;
+  }
+  if (!passComplete) return { tracked: rows.length, sold };
+
+  // Lots that left the catalog after their auction ended.
+  const { data: gone, error: goneError } = await db
     .from("tracked_lots")
     .select("*")
     .eq("source", h.id)
     .lt("last_seen_at", new Date(now.getTime() - GONE_AFTER_MS).toISOString())
     .limit(5000);
-  if (error) throw error;
-  const closed = ((data ?? []) as TrackedLot[]).filter((l) => hasClosed(l, now.getTime()));
-  if (!closed.length) return { tracked: rows.length, sold: 0 };
-
-  const sales = closed.map(saleFrom).filter((s): s is SaleInput => s !== null);
-  await saveSales(sales);
-  // Only forget a lot after its sale is safely saved.
-  for (let i = 0; i < closed.length; i += 200) {
-    const { error: delError } = await db
-      .from("tracked_lots")
-      .delete()
-      .eq("source", h.id)
-      .in("external_id", closed.slice(i, i + 200).map((l) => l.external_id));
-    if (delError) throw delError;
+  if (goneError) throw goneError;
+  const closed = ((gone ?? []) as TrackedLot[]).filter((l) => hasClosed(l, now.getTime()));
+  if (closed.length) {
+    const sales = closed.filter((l) => !l.saved_at).map((l) => saleFrom(l, l.last_seen_at)).filter((s): s is SaleInput => s !== null);
+    await saveSales(sales);
+    sold += sales.length;
+    // Only forget a lot after its sale is safely saved.
+    for (let i = 0; i < closed.length; i += 200) {
+      const { error } = await db.from("tracked_lots").delete().eq("source", h.id).in("external_id", closed.slice(i, i + 200).map((l) => l.external_id));
+      if (error) throw error;
+    }
   }
-  return { tracked: rows.length, sold: sales.length };
+  return { tracked: rows.length, sold };
 }

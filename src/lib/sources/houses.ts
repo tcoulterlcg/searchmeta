@@ -114,10 +114,14 @@ async function fetchGallery(h: House, cursor: number) {
 
 /* ---------- "catalog" software ---------- */
 
-/** A lot on a catalog page, with the bid it currently shows (null when nobody has bid yet). */
+/**
+ * A lot on a catalog page. `bid` is the bid it currently shows (null when nobody has bid yet).
+ * `final` is set once the auction has closed and the page shows what the lot sold for.
+ */
 export interface CatalogLot {
   listing: ListingInput;
   bid: number | null;
+  final: number | null;
 }
 
 /** Lots on a catalog page, each with its current bid. */
@@ -134,16 +138,18 @@ export function parseCatalogLots(h: House, html: string): CatalogLot[] {
     if (!title) continue;
     const img = chunk.match(/<img\b[^>]*?\b(?:data-src|data-original|src)=['"]([^'"]+)['"]/i)?.[1];
     const bid = money(chunk.match(/Current Bid:\s*([^<]*)</i)?.[1]);
+    const final = money(chunk.match(/Final Price:\s*([^<]*)</i)?.[1]);
     out.push({
       listing: listing(h, {
         id: link[3],
         title,
         url: `${h.base}/${link[2]}`,
         image: img ? absolute(h.base, decode(img)) : null,
-        price: bid ?? money(chunk.match(/Min Bid:\s*([^<]*)</i)?.[1]),
+        price: final ?? bid ?? money(chunk.match(/Min Bid:\s*([^<]*)</i)?.[1]),
         endsAt,
       }),
       bid: bid && bid > 0 ? bid : null,
+      final: final && final > 0 ? final : null,
     });
   }
   return out;
@@ -269,12 +275,12 @@ async function fetchCatalog(h: House, startPage: number) {
 
   let html = await visit(url);
   const byId = new Map<string, ListingInput>();
-  const bids = new Map<string, number | null>();
+  const extras = new Map<string, { bid: number | null; final: number | null }>();
   const add = (page: string) => {
     const found = parseCatalogLots(h, page);
     for (const l of found) {
       byId.set(l.listing.external_id, l.listing);
-      bids.set(l.listing.external_id, l.bid);
+      extras.set(l.listing.external_id, { bid: l.bid, final: l.final });
     }
     return found.length;
   };
@@ -349,8 +355,9 @@ async function fetchCatalog(h: House, startPage: number) {
     note += `; stopped: ${e instanceof Error ? e.message : String(e)}`;
   }
   note += `; redirects: ${redirects.join(" | ") || "none"}`;
-  const lots: CatalogLot[] = [...byId.values()].map((l) => ({ listing: l, bid: bids.get(l.external_id) ?? null }));
-  return { listings: [...byId.values()], lots, nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
+  const lots: CatalogLot[] = [...byId.values()].map((l) => ({ listing: l, bid: null, final: null, ...extras.get(l.external_id) }));
+  // Lots that have already sold are kept for the sold archive but are not offered as listings.
+  return { listings: lots.filter((l) => l.final == null).map((l) => l.listing), lots, nextCursor, calls, parsed: byId.size, note: note.slice(-900) };
 }
 
 /* ---------- past results ("catalog" software) ---------- */
