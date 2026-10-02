@@ -71,7 +71,9 @@ async function markSaved(db: SupabaseClient, source: string, ids: string[], at: 
  * (the whole catalog has been read) it also closes out lots that have left the catalog.
  */
 export async function trackLots(db: SupabaseClient, h: House, lots: CatalogLot[], passComplete: boolean) {
-  if (!tracksSales(h) || !archiveEnabled()) return { tracked: 0, sold: 0 };
+  // Every house's lots are kept (the Search tab reads them); sales are only saved for
+  // houses whose published results we do not already copy.
+  const saves = tracksSales(h) && archiveEnabled();
   const now = new Date();
   const nowIso = now.toISOString();
   const rows: TrackedLot[] = lots.map(({ listing, bid, final }) => ({
@@ -100,7 +102,7 @@ export async function trackLots(db: SupabaseClient, h: House, lots: CatalogLot[]
     .not("final", "is", null)
     .limit(5000);
   if (unsavedError) throw unsavedError;
-  const finals = (unsaved ?? []) as TrackedLot[];
+  const finals = saves ? ((unsaved ?? []) as TrackedLot[]) : [];
   if (finals.length) {
     const sales = finals.map((l) => saleFrom(l, nowIso)).filter((s): s is SaleInput => s !== null);
     await saveSales(sales);
@@ -119,9 +121,11 @@ export async function trackLots(db: SupabaseClient, h: House, lots: CatalogLot[]
   if (goneError) throw goneError;
   const closed = ((gone ?? []) as TrackedLot[]).filter((l) => hasClosed(l, now.getTime()));
   if (closed.length) {
-    const sales = closed.filter((l) => !l.saved_at).map((l) => saleFrom(l, l.last_seen_at)).filter((s): s is SaleInput => s !== null);
-    await saveSales(sales);
-    sold += sales.length;
+    if (saves) {
+      const sales = closed.filter((l) => !l.saved_at).map((l) => saleFrom(l, l.last_seen_at)).filter((s): s is SaleInput => s !== null);
+      await saveSales(sales);
+      sold += sales.length;
+    }
     // Only forget a lot after its sale is safely saved.
     for (let i = 0; i < closed.length; i += 200) {
       const { error } = await db.from("tracked_lots").delete().eq("source", h.id).in("external_id", closed.slice(i, i + 200).map((l) => l.external_id));

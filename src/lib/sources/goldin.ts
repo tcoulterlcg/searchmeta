@@ -93,6 +93,21 @@ export async function fetchGoldinListings(
   return { listings: [...byId.values()].map(toListing), calls: auctions.calls + fixed.calls };
 }
 
+/** Live Goldin lots (auctions and Buy Now) matching a search, for the Search tab. */
+export async function searchGoldinListings(keywords: string): Promise<ListingInput[]> {
+  const keyword = toSearchText(keywords);
+  if (!keyword) return [];
+  const [auctions, fixed] = await Promise.all([
+    fetchPage(0, { keyword }),
+    fetchPage(0, { keyword, auctionType: "Fixed_Price" }),
+  ]);
+  const byId = new Map<string, GoldinLot>();
+  for (const l of [...auctions.lots, ...fixed.lots]) {
+    if (l.lot_id && l.title && l.meta_slug) byId.set(l.lot_id, l);
+  }
+  return [...byId.values()].map(toListing);
+}
+
 const SOLD_PAGES = 5;
 
 /** Goldin's API stores some times without a zone; they're UTC. */
