@@ -125,7 +125,7 @@ export function AlertFilters({ searches, sources }: Props) {
           onClick={() => update({ starred: params.get("starred") ? null : "1" })}
           className={`chip ${params.get("starred") ? "border-signal bg-signal/10 text-signal" : ""}`}
         >
-          ★ Starred
+          ★ Watching
         </button>
         {active && (
           <button

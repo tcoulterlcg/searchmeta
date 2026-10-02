@@ -9,7 +9,7 @@ export function StarButton({ id, initial }: { id: string; initial: boolean }) {
   return (
     <button
       type="button"
-      aria-label={on ? "Remove star" : "Star this listing"}
+      aria-label={on ? "Stop watching" : "Watch this listing"}
       aria-pressed={on}
       onClick={() => {
         const next = !on;
