@@ -62,9 +62,9 @@ export default async function Home() {
             Goldin · Fanatics Collect · MyCardPost · MySlabs · and more
           </p>
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:whitespace-nowrap sm:text-5xl">
-            One saved search.
+            Every marketplace.
             <br />
-            Every auction house.
+            One search.
           </h1>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
             Tell Grailio what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.{" "}

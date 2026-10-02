@@ -8,7 +8,7 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://searchmeta.vercel.app"),
-  title: { default: "Grailio: one saved search, every auction house", template: "%s · Grailio" },
+  title: { default: "Grailio: every marketplace, one search", template: "%s · Grailio" },
   description: DESCRIPTION,
   openGraph: {
     title: "Grailio: one saved search, every auction house",

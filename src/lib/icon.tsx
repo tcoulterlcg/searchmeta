@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 /**
- * App icon / favicon: the converge mark on the ink background.
+ * App icon / favicon: the searchlight mark (G, arrow and green crosshair) on the ink background.
  *
  * - "tile" (default): a rounded square with clear corners, the shape desktop shortcuts, browser
  *   tabs and Windows/Mac docks show as-is. A hairline edge keeps it visible on dark wallpapers.
@@ -23,11 +23,10 @@ export function renderIcon(size: number, shape: "tile" | "full" = "tile") {
           }}
         >
           <svg width={mark} height={mark} viewBox="0 0 64 64" fill="none">
-            <path d="M8 12C28 12 26 32 44 32" stroke="#e8ecf1" strokeWidth="5" strokeLinecap="round" />
-            <path d="M8 25C24 25 28 32 44 32" stroke="#e8ecf1" strokeWidth="5" strokeLinecap="round" />
-            <path d="M8 39C24 39 28 32 44 32" stroke="#e8ecf1" strokeWidth="5" strokeLinecap="round" />
-            <path d="M8 52C28 52 26 32 44 32" stroke="#e8ecf1" strokeWidth="5" strokeLinecap="round" />
-            <circle cx="50" cy="32" r="9.5" fill="#3ef08a" />
+            <path d="M47.6 16.4A22 22 0 1 0 54 32H37" stroke="#e8ecf1" strokeWidth="8" strokeLinecap="butt" strokeLinejoin="miter" />
+            <path d="M38 24.5 25 32l13 7.5Z" fill="#e8ecf1" />
+            <circle cx="32" cy="32" r="12.5" stroke="#3ef08a" strokeWidth="3" />
+            <path d="M32 2v15M32 47v15M2 32h15" stroke="#3ef08a" strokeWidth="3" strokeLinecap="butt" />
           </svg>
         </div>
       </div>

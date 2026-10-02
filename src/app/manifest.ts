@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Grailio",
     short_name: "Grailio",
-    description: "One saved search across every auction house.",
+    description: "Every marketplace. One search.",
     start_url: "/alerts",
     display: "standalone",
     background_color: "#0b0d10",
