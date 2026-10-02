@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Dropdown } from "@/components/Dropdown";
+import { removeSearch } from "../searches/actions";
 
 const SORTS = [
   { value: "", label: "Newest" },
@@ -57,9 +58,17 @@ export function AlertFilters({ searches, sources }: Props) {
         <Dropdown
           ariaLabel="Saved search"
           className="min-w-0 flex-1"
-          options={[{ value: "", label: "All saved searches" }, ...searches.map((s) => ({ value: s.id, label: s.name }))]}
+          options={[{ value: "", label: "All saved searches" }, ...searches.map((s) => ({ value: s.id, label: s.name, removable: true }))]}
           value={params.get("search") ?? ""}
           onChange={([v]) => update({ search: v || null })}
+          onRemove={(id) =>
+            start(async () => {
+              await removeSearch(id);
+              // Deleting the search you're filtered to would leave an empty page.
+              if (params.get("search") === id) update({ search: null });
+              else router.refresh();
+            })
+          }
         />
         <Dropdown
           ariaLabel="Sort"
