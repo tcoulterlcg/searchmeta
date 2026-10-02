@@ -84,7 +84,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="grid gap-8 border-t border-line py-8 pb-16 sm:grid-cols-3">
+      <section className="grid gap-8 border-t border-line py-8 pb-12 sm:grid-cols-3">
         {POINTS.map((p) => (
           <div key={p.title}>
             <h2 className="font-semibold">{p.title}</h2>
@@ -92,6 +92,13 @@ export default function Home() {
           </div>
         ))}
       </section>
+
+      <footer className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line py-6 text-sm text-muted">
+        <Link href="/about" className="hover:text-text">About</Link>
+        <Link href="/support" className="hover:text-text">Support</Link>
+        <Link href="/terms" className="hover:text-text">Terms</Link>
+        <Link href="/privacy" className="hover:text-text">Privacy</Link>
+      </footer>
     </main>
   );
 }

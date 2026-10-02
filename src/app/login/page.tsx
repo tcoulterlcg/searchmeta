@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Wordmark } from "@/components/Logo";
@@ -63,6 +64,13 @@ function LoginForm() {
           {busy ? "…" : mode === "signup" ? "Create account" : mode === "forgot" ? "Email me a reset link" : "Sign in"}
         </button>
       </form>
+      {mode === "signup" && (
+        <p className="mt-3 text-xs leading-relaxed text-muted">
+          By creating an account you agree to the{" "}
+          <Link href="/terms" className="underline hover:text-text">Terms</Link> and{" "}
+          <Link href="/privacy" className="underline hover:text-text">Privacy Policy</Link>.
+        </p>
+      )}
       {msg && <p className="mt-4 text-sm text-warn">{msg}</p>}
       {mode === "signin" && (
         <button className="mt-4 text-sm text-muted hover:text-text"
