@@ -60,7 +60,8 @@ export async function GET(req: NextRequest) {
 
   // Test read of a sold-archive page, without saving anything: ?probe=myslabs&page=1
   if (req.nextUrl.searchParams.get("probe") === "myslabs") {
-    const r = await fetchMySlabsSoldPage(Number(req.nextUrl.searchParams.get("page") ?? 1));
+    const r = await fetchMySlabsSoldPage(Number(req.nextUrl.searchParams.get("page") ?? 1)).catch((e) => String(e));
+    if (typeof r === "string") return NextResponse.json({ error: r });
     return NextResponse.json({
       found: r.sales.length,
       dated: r.sales.filter((s) => s.sold_at).length,
