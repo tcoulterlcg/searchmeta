@@ -2,9 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { Dropdown } from "@/components/Dropdown";
 
-/** More sites than this won't fit on one row, so they move into a dropdown. */
-const MAX_CHIPS = 6;
+const SORTS = [
+  { value: "", label: "Newest" },
+  { value: "price_asc", label: "Price: low → high" },
+  { value: "price_desc", label: "Price: high → low" },
+  { value: "ending", label: "Ending soonest" },
+];
 
 interface Props {
   searches: { id: string; name: string }[];
@@ -36,17 +41,10 @@ export function AlertFilters({ searches, sources }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  function toggleSite(id: string) {
-    const set = new Set(selectedSites);
-    if (set.has(id)) set.delete(id);
-    else set.add(id);
-    update({ site: [...set].join(",") || null });
-  }
-
   const active = params.get("q") || params.get("search") || params.get("site") || params.get("sort") || params.get("starred");
 
   return (
-    <div className={`mb-5 space-y-3 transition-opacity ${pending ? "opacity-60" : ""}`}>
+    <div className={`relative z-[5] mb-5 space-y-3 transition-opacity ${pending ? "opacity-60" : ""}`}>
       <input
         className="input"
         type="search"
@@ -56,82 +54,49 @@ export function AlertFilters({ searches, sources }: Props) {
       />
 
       <div className="flex gap-2">
-        <select
-          className="input flex-1"
+        <Dropdown
+          ariaLabel="Saved search"
+          className="min-w-0 flex-1"
+          options={[{ value: "", label: "All saved searches" }, ...searches.map((s) => ({ value: s.id, label: s.name }))]}
           value={params.get("search") ?? ""}
-          onChange={(e) => update({ search: e.target.value || null })}
-        >
-          <option value="">All saved searches</option>
-          {searches.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-        <select
-          className="input w-auto"
+          onChange={([v]) => update({ search: v || null })}
+        />
+        <Dropdown
+          ariaLabel="Sort"
+          className="w-44 shrink-0"
+          align="right"
+          options={SORTS}
           value={params.get("sort") ?? ""}
-          onChange={(e) => update({ sort: e.target.value || null })}
-        >
-          <option value="">Newest</option>
-          <option value="price_asc">Price: low → high</option>
-          <option value="price_desc">Price: high → low</option>
-          <option value="ending">Ending soonest</option>
-        </select>
+          onChange={([v]) => update({ sort: v || null })}
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {sources.length > MAX_CHIPS ? (
-          // Too many sites for one row of chips: pick them from a dropdown instead.
-          <details className="relative flex-1">
-            {/* Styled like the selects above so every dropdown on the page looks the same. */}
-            <summary className={`input flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden ${selectedSites.length ? "border-signal text-signal" : ""}`}>
-              {selectedSites.length === 0
-                ? "All sites"
-                : selectedSites.length === 1
-                  ? sources.find((s) => s.id === selectedSites[0])?.name ?? "1 site"
-                  : `${selectedSites.length} sites`}
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" /></svg>
-            </summary>
-            <div className="absolute left-0 z-20 mt-2 max-h-80 w-64 overflow-auto rounded-xl border border-line bg-panel p-1.5 shadow-xl">
-              {sources.map((s) => (
-                <label key={s.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-ink">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-signal"
-                    checked={selectedSites.includes(s.id)}
-                    onChange={() => toggleSite(s.id)}
-                  />
-                  {s.name}
-                </label>
-              ))}
-            </div>
-          </details>
-        ) : (
-          sources.map((s) => {
-            const on = selectedSites.includes(s.id);
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => toggleSite(s.id)}
-                className={`chip ${on ? "border-signal bg-signal/10 text-signal" : ""}`}
-              >
-                {s.name}
-              </button>
-            );
-          })
-        )}
+      <div className="flex items-center gap-2">
+        <Dropdown
+          ariaLabel="Sites"
+          className="min-w-0 flex-1"
+          multiple
+          allLabel="All sites"
+          unit="sites"
+          options={sources.map((s) => ({ value: s.id, label: s.name }))}
+          value={selectedSites}
+          onChange={(v) => update({ site: v.join(",") || null })}
+        />
         <button
           type="button"
           aria-pressed={Boolean(params.get("starred"))}
           onClick={() => update({ starred: params.get("starred") ? null : "1" })}
-          className={`input w-auto cursor-pointer whitespace-nowrap ${params.get("starred") ? "border-signal text-signal" : ""}`}
+          className={`input w-44 shrink-0 cursor-pointer whitespace-nowrap text-left ${params.get("starred") ? "border-signal text-signal" : ""}`}
         >
           ★ Watching
         </button>
+      </div>
+
+      <div className="flex justify-end empty:hidden">
         {active && (
           <button
             type="button"
-            className="ml-auto text-sm text-muted hover:text-text"
+            className="text-sm text-muted hover:text-text"
             onClick={() => {
               setQ("");
               start(() => router.replace("/alerts", { scroll: false }));

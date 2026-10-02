@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SOURCES, type SavedSearch } from "@/lib/types";
+import { Dropdown } from "@/components/Dropdown";
 import { deleteSearch, saveSearch } from "./actions";
 
 const FORMATS = [
@@ -11,9 +12,6 @@ const FORMATS = [
 export function SearchForm({ search }: { search?: SavedSearch }) {
   const s = search;
   const sources = s?.sources ?? SOURCES.map((x) => x.id);
-  // Heritage is set up in Settings, not picked here.
-  const pickable = SOURCES.filter((x) => x.id !== "heritage").length;
-  const picked = SOURCES.filter((x) => x.id !== "heritage" && sources.includes(x.id)).length;
 
   return (
     <div>
@@ -46,24 +44,19 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
         </Field>
 
         <Field label="Sites">
-          {/* One row of chips can't hold every site, so they live in a dropdown. */}
-          <details className="group rounded-lg border border-line bg-panel">
-            <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm [&::-webkit-details-marker]:hidden">
-              <span>
-                {picked >= pickable ? "All sites" : `${picked} of ${pickable} sites`}
-              </span>
-              <span className="text-xs text-muted group-open:rotate-180">▾</span>
-            </summary>
-            <div className="flex flex-wrap gap-2 border-t border-line p-3">
-              {SOURCES.map((src) =>
-                src.id === "heritage" ? (
-                  <Link key={src.id} href="/settings" className="chip opacity-60">{src.name} · In Development</Link>
-                ) : (
-                  <ChipCheck key={src.id} name="sources" value={src.id} label={src.name} defaultChecked={sources.includes(src.id)} />
-                ),
-              )}
-            </div>
-          </details>
+          <Dropdown
+            ariaLabel="Sites"
+            name="sources"
+            multiple
+            allLabel="All sites"
+            unit="sites"
+            defaultValue={sources}
+            options={SOURCES.map((src) =>
+              src.id === "heritage"
+                ? { value: src.id, label: src.name, note: "In Development", disabled: true }
+                : { value: src.id, label: src.name },
+            )}
+          />
         </Field>
 
         <Field label="Price">
@@ -103,16 +96,17 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
           </div>
         </Field>
 
-        <Field label="Notifications">
-          <label className="flex items-center justify-between rounded-lg border border-line bg-panel px-3 py-3 text-sm">
-            Alert me
-            <select name="notify" defaultValue={s?.notify === false ? "off" : s?.delivery === "feed" ? "feed" : "on"}
-              className="rounded bg-ink px-2 py-1 text-text">
-              <option value="on">Instantly</option>
-              <option value="feed">Daily feed</option>
-              <option value="off">Off</option>
-            </select>
-          </label>
+        <Field label="Alert me">
+          <Dropdown
+            ariaLabel="Alert me"
+            name="notify"
+            defaultValue={s?.notify === false ? "off" : s?.delivery === "feed" ? "feed" : "on"}
+            options={[
+              { value: "on", label: "Instantly" },
+              { value: "feed", label: "Daily feed" },
+              { value: "off", label: "Off" },
+            ]}
+          />
           <p className="mt-1.5 text-xs text-muted">Instantly: a push for every new match. Daily feed: one push each morning with the day&apos;s matches.</p>
         </Field>
 

@@ -65,12 +65,12 @@ function LoginForm() {
       </form>
       {msg && <p className="mt-4 text-sm text-warn">{msg}</p>}
       {mode === "signin" && (
-        <button className="mt-4 text-left text-sm text-muted hover:text-text"
+        <button className="mt-4 text-sm text-muted hover:text-text"
           onClick={() => { setMode("forgot"); setMsg(null); }}>
           Forgot password?
         </button>
       )}
-      <button className="mt-4 text-left text-sm text-muted hover:text-text"
+      <button className="mt-4 text-sm text-muted hover:text-text"
         onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setMsg(null); }}>
         {mode === "signin" ? "New here? Create an account" : mode === "forgot" ? "Back to sign in" : "Already have an account? Sign in"}
       </button>

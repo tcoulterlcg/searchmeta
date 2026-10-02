@@ -5,6 +5,7 @@ import { fetchGoldinSold } from "@/lib/sources/goldin";
 import type { SaleInput } from "@/lib/types";
 import { archiveEnabled, saveSales, searchSales } from "@/lib/archive";
 import { SOURCES } from "@/lib/types";
+import { SoldSort } from "./SoldSort";
 
 export const dynamic = "force-dynamic";
 
@@ -125,29 +126,14 @@ export default async function SoldPage({
           <button className="btn-primary shrink-0">Search</button>
         </div>
         {query && (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted">Sort</span>
-            {[
-              ["recent", "Most recent"],
-              ["high", "Highest"],
-              ["low", "Lowest"],
-            ].map(([id, label]) => (
-              <a
-                key={id}
-                href={`/sold?q=${encodeURIComponent(query)}&sort=${id}`}
-                className={`chip ${sort === id ? "border-signal bg-signal/10 text-signal" : ""}`}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
+          <SoldSort query={query} sort={sort} />
         )}
       </form>
 
       {!query && (
         <p className="mt-6 text-sm text-muted">
-          Search past sales by card. Results come from Goldin (back to 2012) and
-          Fanatics Collect (back to 2021).
+          Search past sales by card. Results come from Goldin (back to 2012),
+          Fanatics Collect (back to 2021) and Sirius Sports Cards.
         </p>
       )}
 
@@ -207,7 +193,7 @@ export default async function SoldPage({
                             s.source}
                         </span>
                         <span>
-                          {s.sale_type === "buy_it_now" ? "Buy Now" : "Auction"}
+                          {s.sale_type === "buy_it_now" ? "Buy It Now" : "Auction"}
                         </span>
                         {s.sold_at && (
                           <span>
