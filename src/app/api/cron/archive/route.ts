@@ -6,6 +6,7 @@ import {
   newFanaticsBackfill,
   type FanaticsBackfillState,
 } from "@/lib/sources/fanatics";
+import { fetchMySlabsSoldPage } from "@/lib/sources/myslabs";
 import { createServiceClient } from "@/lib/supabase/server";
 import type { SaleInput } from "@/lib/types";
 
@@ -46,6 +47,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!archiveEnabled()) return NextResponse.json({ ok: false, error: "Turso not configured" });
+
+  // Test read of a sold-archive page, without saving anything: ?probe=myslabs&page=1
+  if (req.nextUrl.searchParams.get("probe") === "myslabs") {
+    const r = await fetchMySlabsSoldPage(Number(req.nextUrl.searchParams.get("page") ?? 1));
+    return NextResponse.json({
+      found: r.sales.length,
+      dated: r.sales.filter((s) => s.sold_at).length,
+      priced: r.sales.filter((s) => s.price != null).length,
+      sample: r.sales.slice(0, 2),
+      firstText: r.firstText,
+    });
+  }
 
   const start = Date.now();
   const deadline = start + 45_000;
