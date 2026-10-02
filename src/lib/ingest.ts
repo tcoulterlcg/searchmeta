@@ -125,7 +125,7 @@ export async function ingestListings(
   for (const [userId, more] of overflow) {
     pushes += await sendPushToUser(db, userId, {
       title: `🟢 ${SOURCE_NAMES[source]} · ${more} more ${more === 1 ? "match" : "matches"}`,
-      body: "Open SearchMeta to see them all.",
+      body: "Open Grailio to see them all.",
       url: "/alerts",
       tag: `${source}-more`,
     });

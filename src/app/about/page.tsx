@@ -4,7 +4,7 @@ import { Wordmark } from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "Every marketplace and auction house SearchMeta searches for you.",
+  description: "Every marketplace and auction house Grailio searches for you.",
 };
 
 type Status = "live" | "setup";
@@ -87,7 +87,7 @@ export default function AboutPage() {
 
       <h1 className="text-3xl font-bold tracking-tight">One search. Every site.</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        SearchMeta watches marketplaces and auction houses for the cards you&apos;re hunting and alerts you the moment one is
+        Grailio watches marketplaces and auction houses for the cards you&apos;re hunting and alerts you the moment one is
         listed. You save a search once; we check it against {live} sites, with more being added. Every alert links
         straight to the listing on the seller&apos;s own site.
       </p>
@@ -109,9 +109,9 @@ export default function AboutPage() {
       </ul>
 
       <p className="mt-10 text-sm leading-relaxed text-muted">
-        Every alert links straight to the listing on the seller&apos;s own site. SearchMeta doesn&apos;t sell cards or handle
+        Every alert links straight to the listing on the seller&apos;s own site. Grailio doesn&apos;t sell cards or handle
         payments. Want a site added? Email{" "}
-        <a href="mailto:support@searchmeta.app" className="text-signal">support@searchmeta.app</a>.
+        <a href="mailto:support@grailio.app" className="text-signal">support@grailio.app</a>.
       </p>
     </main>
   );

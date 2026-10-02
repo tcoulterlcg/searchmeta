@@ -8,18 +8,18 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://searchmeta.vercel.app"),
-  title: { default: "SearchMeta: one saved search, every auction house", template: "%s · SearchMeta" },
+  title: { default: "Grailio: one saved search, every auction house", template: "%s · Grailio" },
   description: DESCRIPTION,
   openGraph: {
-    title: "SearchMeta: one saved search, every auction house",
+    title: "Grailio: one saved search, every auction house",
     description: DESCRIPTION,
-    siteName: "SearchMeta",
+    siteName: "Grailio",
     type: "website",
     url: "/",
   },
   twitter: { card: "summary_large_image" },
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "SearchMeta", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "Grailio", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {

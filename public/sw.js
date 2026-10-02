@@ -1,10 +1,10 @@
-/* SearchMeta service worker: push notifications */
+/* Grailio service worker: push notifications */
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
-  let data = { title: "SearchMeta", body: "New match", url: "/alerts" };
+  let data = { title: "Grailio", body: "New match", url: "/alerts" };
   try {
     data = { ...data, ...event.data.json() };
   } catch {}

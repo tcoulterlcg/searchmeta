@@ -1,10 +1,10 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "SearchMeta: one saved search, every auction house";
+export const alt = "Grailio: one saved search, every auction house";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/** The preview picture shown when a SearchMeta link is shared in a text, email or social post. */
+/** The preview picture shown when a Grailio link is shared in a text, email or social post. */
 export default function OpenGraphImage() {
   return new ImageResponse(
     (
@@ -17,7 +17,7 @@ export default function OpenGraphImage() {
             <path d="M8 52C28 52 26 32 44 32" stroke="#e8ecf1" strokeWidth="4.5" strokeLinecap="round" />
             <circle cx="50" cy="32" r="9" fill="#3ef08a" />
           </svg>
-          <div style={{ display: "flex" }}>SearchMeta</div>
+          <div style={{ display: "flex" }}>Grailio</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: 56, fontSize: 92, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
           <div style={{ display: "flex" }}>One saved search.</div>

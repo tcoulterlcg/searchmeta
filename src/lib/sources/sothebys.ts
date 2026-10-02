@@ -11,7 +11,7 @@ const BASE = "https://www.sothebys.com";
 const DEPT = `${BASE}/en/departments/sneakers-collectibles`;
 const CRAWL_DELAY_MS = 15_000;
 const AUCTIONS_PER_RUN = 2;
-const UA = "SearchMetaBot/1.0 (+https://searchmeta.vercel.app)";
+const UA = "GrailioBot/1.0 (+https://searchmeta.vercel.app)";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

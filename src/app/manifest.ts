@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "SearchMeta",
-    short_name: "SearchMeta",
+    name: "Grailio",
+    short_name: "Grailio",
     description: "One saved search across every auction house.",
     start_url: "/alerts",
     display: "standalone",

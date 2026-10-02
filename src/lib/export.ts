@@ -15,7 +15,7 @@ function csvHeaders(name: string) {
   const day = new Date().toISOString().slice(0, 10);
   return {
     "Content-Type": "text/csv; charset=utf-8",
-    "Content-Disposition": `attachment; filename="searchmeta-${name}-${day}.csv"`,
+    "Content-Disposition": `attachment; filename="grailio-${name}-${day}.csv"`,
     "Cache-Control": "no-store",
   };
 }

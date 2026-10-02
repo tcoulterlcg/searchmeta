@@ -52,7 +52,7 @@ async function sendEmail(to: string[], subject: string, lines: string[]): Promis
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: process.env.ALERT_EMAIL_FROM || "SearchMeta Alerts <onboarding@resend.dev>",
+      from: process.env.ALERT_EMAIL_FROM || "Grailio Alerts <onboarding@resend.dev>",
       to,
       subject,
       text: lines.join("\n"),
@@ -86,7 +86,7 @@ async function notifyOwners(db: SupabaseClient, subject: string, lines: string[]
  */
 export async function runHealthCheck(db: SupabaseClient, opts: { test?: boolean } = {}) {
   if (opts.test) {
-    const sent = await notifyOwners(db, "🔴 SearchMeta TEST: site alarm is working", [
+    const sent = await notifyOwners(db, "🔴 Grailio TEST: site alarm is working", [
       "This is a test of the alarm that fires when a site stops being checked.",
       "No action needed.",
     ]);
@@ -120,7 +120,7 @@ export async function runHealthCheck(db: SupabaseClient, opts: { test?: boolean 
   if (toAlert.length) {
     const names = toAlert.map((p) => nameOf(p.source));
     const subject =
-      toAlert.length === 1 ? `🔴 SearchMeta: ${names[0]} alerts have stopped` : `🔴 SearchMeta: ${toAlert.length} sites have stopped`;
+      toAlert.length === 1 ? `🔴 Grailio: ${names[0]} alerts have stopped` : `🔴 Grailio: ${toAlert.length} sites have stopped`;
     sent = await notifyOwners(db, subject, [
       ...toAlert.map((p) => `${nameOf(p.source)}: ${p.reason}`),
       "",
@@ -132,7 +132,7 @@ export async function runHealthCheck(db: SupabaseClient, opts: { test?: boolean 
   } else if (recoveredAfterAlert.length) {
     sent = await notifyOwners(
       db,
-      `🟢 SearchMeta: ${recoveredAfterAlert.map((r) => nameOf(r.source)).join(", ")} back to normal`,
+      `🟢 Grailio: ${recoveredAfterAlert.map((r) => nameOf(r.source)).join(", ")} back to normal`,
       ["These sites are being checked again. No action needed."],
     );
   }

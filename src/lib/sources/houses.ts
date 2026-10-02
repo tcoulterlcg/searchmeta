@@ -18,7 +18,7 @@ export interface House {
 /**
  * Built and tested, but switched off: these four sites answer our reader with
  * "403 Forbidden" from the live servers (checked 10/1/2026). We don't disguise the
- * reader to get past that. Move a house into HOUSES once it lets SearchMetaBot in.
+ * reader to get past that. Move a house into HOUSES once it lets GrailioBot in.
  */
 export const BLOCKED_HOUSES: House[] = [
   { id: "lelands", platform: "gallery", base: "https://auction.lelands.com" },

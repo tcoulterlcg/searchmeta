@@ -19,12 +19,12 @@ export function Wordmark() {
   return (
     <Link
       href="/"
-      aria-label="SearchMeta home"
+      aria-label="Grailio home"
       className={`${displayFont.className} flex w-fit items-center gap-2 text-xl font-light tracking-tight`}
     >
       <Logo />
       <span>
-        search<span className="font-extrabold">meta</span>
+        grail<span className="font-extrabold">io</span>
       </span>
     </Link>
   );

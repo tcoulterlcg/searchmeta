@@ -9,7 +9,7 @@ export default function NotFound() {
       </div>
       <h1 className="text-2xl font-bold">Page not found</h1>
       <p className="mt-2 text-muted">That link doesn&apos;t go anywhere. It may have moved or been mistyped.</p>
-      <Link href="/" className="btn-primary mt-6 w-fit">Back to SearchMeta</Link>
+      <Link href="/" className="btn-primary mt-6 w-fit">Back to Grailio</Link>
     </main>
   );
 }

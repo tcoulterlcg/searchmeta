@@ -1,6 +1,6 @@
 /** Small helpers shared by the readers that parse plain HTML pages. */
 
-export const UA = "SearchMetaBot/1.0 (+https://searchmeta.vercel.app)";
+export const UA = "GrailioBot/1.0 (+https://searchmeta.vercel.app)";
 
 export function decode(s: string) {
   return s

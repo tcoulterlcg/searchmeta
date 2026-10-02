@@ -73,7 +73,7 @@ export function EnablePushBanner() {
   if (state === "unsupported") {
     return (
       <div className="mb-5 rounded-xl border border-line bg-panel p-4 text-sm text-muted">
-        Push alerts aren&apos;t available in this browser. On iPhone, open SearchMeta in <b className="text-text">Safari</b>,
+        Push alerts aren&apos;t available in this browser. On iPhone, open Grailio in <b className="text-text">Safari</b>,
         tap <b className="text-text">Share → Add to Home Screen</b>, then open it from your Home Screen (iOS 16.4 or newer).
       </div>
     );
@@ -86,11 +86,11 @@ export function EnablePushBanner() {
           <p className="font-semibold">Get alerts on your iPhone</p>
           <p className="mt-1 text-sm text-muted">
             Tap the <b className="text-text">Share</b> button, then <b className="text-text">Add to Home Screen</b>. Open
-            SearchMeta from your home screen to turn on notifications.
+            Grailio from your home screen to turn on notifications.
           </p>
         </>
       ) : state === "denied" ? (
-        <p className="text-sm text-muted">Notifications are blocked. Turn them on for SearchMeta in your device settings.</p>
+        <p className="text-sm text-muted">Notifications are blocked. Turn them on for Grailio in your device settings.</p>
       ) : (
         <div className="flex items-center justify-between gap-3">
           <div>

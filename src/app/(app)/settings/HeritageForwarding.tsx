@@ -27,7 +27,7 @@ export async function HeritageForwarding() {
       ) : (
         <>
           <p className="mt-2 text-sm text-muted">
-            Heritage doesn&apos;t allow automated searching, so SearchMeta works from Heritage&apos;s own alert emails.
+            Heritage doesn&apos;t allow automated searching, so Grailio works from Heritage&apos;s own alert emails.
           </p>
           <div className="mt-3">
             <CopyField value={address} />

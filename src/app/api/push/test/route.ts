@@ -20,7 +20,7 @@ export async function POST() {
   const payload = match
     ? { ...alertPayload(match.listing, match.saved_search?.name ?? "Your search"), tag: `test-${Date.now()}` }
     : {
-        title: "🟢 SearchMeta · Test alert",
+        title: "🟢 Grailio · Test alert",
         body: "This is what a match will look like.\nSave a search to see a real one.",
         url: "/alerts",
       };

@@ -20,7 +20,7 @@ export function Wordmark({ size = 28 }: { size?: number }) {
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <Logo size={size} />
       <Text style={{ color: colors.text, fontSize: size * 0.72, fontFamily: fonts.light, letterSpacing: -0.5 }}>
-        search<Text style={{ fontFamily: fonts.heavy }}>meta</Text>
+        grail<Text style={{ fontFamily: fonts.heavy }}>io</Text>
       </Text>
     </View>
   );

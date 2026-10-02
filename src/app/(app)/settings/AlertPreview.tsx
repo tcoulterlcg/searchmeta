@@ -15,7 +15,7 @@ export async function AlertPreview() {
     .maybeSingle<{ listing: Listing; saved_search: { name: string } | null }>();
 
   const listing = match?.listing;
-  const site = listing ? SOURCES.find((s) => s.id === listing.source)?.name ?? "SearchMeta" : "Fanatics Collect";
+  const site = listing ? SOURCES.find((s) => s.id === listing.source)?.name ?? "Grailio" : "Fanatics Collect";
   const search = match?.saved_search?.name ?? "Game Used Patch";
   const title = listing?.title ?? "2017 Panini Flawless Chris Webber GAME USED PATCH /25 #49 BGS 9 MINT";
   const details = listing ? alertDetails(listing) : "$1,139 · Buy It Now";

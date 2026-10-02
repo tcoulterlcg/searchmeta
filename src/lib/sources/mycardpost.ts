@@ -100,7 +100,7 @@ export async function fetchMyCardPostListings(
     const url = page === 1 ? `${BASE}/marketplace` : `${BASE}/marketplace?page=${page}`;
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "SearchMetaBot/1.0 (+https://searchmeta.vercel.app)",
+        "User-Agent": "GrailioBot/1.0 (+https://searchmeta.vercel.app)",
         Accept: "text/html",
       },
     });
