@@ -55,7 +55,7 @@ export function ProfileMenu({ email, avatarUrl }: { email: string; avatarUrl: st
             onClick={() => setOpen(false)}
             className="block border-t border-line px-4 py-3 text-sm hover:bg-ink"
           >
-            Sites we search
+            About
           </Link>
           <form action={signOut}>
             <button type="submit" className="w-full border-t border-line px-4 py-3 text-left text-sm text-red-500 hover:bg-ink">

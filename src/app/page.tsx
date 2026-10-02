@@ -8,9 +8,10 @@ export default function Home() {
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)]">
       <header className="flex items-center justify-between">
         <Wordmark />
-        <Link href="/login" className="text-sm text-muted hover:text-text">
-          Sign in
-        </Link>
+        <nav className="flex items-center gap-5 text-sm text-muted">
+          <Link href="/about" className="hover:text-text">About</Link>
+          <Link href="/login" className="hover:text-text">Sign in</Link>
+        </nav>
       </header>
 
       <section className="flex flex-1 flex-col justify-center py-16">
