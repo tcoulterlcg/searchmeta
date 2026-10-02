@@ -122,15 +122,17 @@ async function fetchSoldPage(opts: {
   keyword?: string;
   from: number;
   priceRange?: { min: number; max: number };
+  size?: number;
+  sort?: string;
 }): Promise<{ sales: SaleInput[]; total: number; raw: number }> {
   const res = await fetch(API, {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: "https://goldin.co", Referer: "https://goldin.co/" },
     body: JSON.stringify({
       search: {
-        queryType: "Featured",
+        queryType: opts.sort ?? "Featured",
         keyword: opts.keyword ?? "",
-        size: PAGE_SIZE,
+        size: opts.size ?? PAGE_SIZE,
         from: opts.from,
         show_only: "Sold",
         ...(opts.priceRange ? { priceRange: opts.priceRange } : {}),
@@ -170,7 +172,20 @@ interface Band {
   min: number;
   max: number;
   from: number;
+  /** How many sales the band should hold (the largest count Goldin reported for it). */
+  expect?: number;
+  /** Sort order for this pass over the band. */
+  sort?: string;
 }
+
+/**
+ * Goldin's search is served by several servers and some hold an incomplete copy
+ * (the same query reports ~625k sales on one and ~829k on another). So each band is
+ * counted a few times and a page is only accepted from a server reporting the full count.
+ */
+const COUNT_PROBES = 3;
+const PAGE_TRIES = 5;
+const SECOND_SORT = "Recently_Started";
 
 export interface GoldinBackfillState {
   queue: Band[];
@@ -191,19 +206,43 @@ export async function goldinBackfillStep(
 ): Promise<GoldinBackfillState> {
   while (state.queue.length && Date.now() < deadline) {
     const band = state.queue[0];
-    const r = await fetchSoldPage({ from: band.from, priceRange: { min: band.min, max: band.max } });
-    state.pages++;
+    const priceRange = { min: band.min, max: band.max };
 
-    if (band.from === 0 && r.total > WINDOW && band.max > band.min) {
-      const mid = Math.floor((band.min + band.max) / 2);
-      state.queue.splice(0, 1, { min: band.min, max: mid, from: 0 }, { min: mid + 1, max: band.max, from: 0 });
-      continue;
+    if (band.expect == null) {
+      let most = 0;
+      for (let i = 0; i < COUNT_PROBES; i++) {
+        most = Math.max(most, (await fetchSoldPage({ from: 0, priceRange, size: 1 })).total);
+      }
+      band.expect = most;
+      if (most > WINDOW && band.max > band.min) {
+        const mid = Math.floor((band.min + band.max) / 2);
+        state.queue.splice(0, 1, { min: band.min, max: mid, from: 0 }, { min: mid + 1, max: band.max, from: 0 });
+        continue;
+      }
+      if (most === 0) {
+        state.queue.shift();
+        continue;
+      }
     }
+
+    let r = await fetchSoldPage({ from: band.from, priceRange, sort: band.sort });
+    for (let i = 1; i < PAGE_TRIES && r.total < band.expect; i++) {
+      const again = await fetchSoldPage({ from: band.from, priceRange, sort: band.sort });
+      if (again.total > r.total) r = again;
+    }
+    state.pages++;
 
     state.saved += await save(r.sales);
     const next = band.from + PAGE_SIZE;
-    if (r.raw === PAGE_SIZE && next < Math.min(r.total, WINDOW)) band.from = next;
-    else state.queue.shift();
+    if (r.raw === PAGE_SIZE && next < Math.min(band.expect, WINDOW)) {
+      band.from = next;
+    } else if (band.expect > WINDOW && !band.sort) {
+      // One price with more sales than a query can page through: read it again in another order to reach more of them.
+      band.sort = SECOND_SORT;
+      band.from = 0;
+    } else {
+      state.queue.shift();
+    }
   }
   if (!state.queue.length && !state.finishedAt) state.finishedAt = new Date().toISOString();
   return state;

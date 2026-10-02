@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
     const copied = await copyFromSupabase();
 
     let goldin = await getJob<GoldinBackfillState>("goldin-sold");
-    if (!goldin || (goldin.finishedAt && Date.now() - Date.parse(goldin.finishedAt) > REFRESH_AFTER_MS)) {
+    const restart = req.nextUrl.searchParams.get("restart") === "goldin";
+    if (!goldin || restart || (goldin.finishedAt && Date.now() - Date.parse(goldin.finishedAt) > REFRESH_AFTER_MS)) {
       goldin = newGoldinBackfill();
     }
     let fanatics = (await getJob<FanaticsBackfillState>("fanatics-sold")) ?? newFanaticsBackfill();
