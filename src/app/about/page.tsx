@@ -87,7 +87,8 @@ export default function AboutPage() {
       <h1 className="text-3xl font-bold tracking-tight">One search. Every site.</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         SearchMeta watches marketplaces and auction houses for the cards you&apos;re hunting and alerts you the moment one is
-        listed. You save a search once; we check it against {live} sites, with more being added.
+        listed. You save a search once; we check it against {live} sites, with more being added. Every alert links
+        straight to the listing on the seller&apos;s own site.
       </p>
 
       <h2 className="mb-3 mt-10 text-xs font-semibold uppercase tracking-wider text-muted">Marketplaces</h2>
