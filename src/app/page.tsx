@@ -1,5 +1,29 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { Wordmark } from "@/components/Logo";
+import { SalesBackdrop, type BackdropSale } from "@/components/SalesBackdrop";
+import { archiveEnabled, sampleSales } from "@/lib/archive";
+import { SOURCES } from "@/lib/types";
+
+// Refresh the backdrop's sales hourly.
+export const revalidate = 3600;
+
+const sourceName = (id: string) => SOURCES.find((s) => s.id === id)?.name ?? id;
+
+/** Real sold prices from the archive. Empty (no backdrop) if the archive can't be reached. */
+const backdropSales = unstable_cache(
+  async (): Promise<BackdropSale[]> => {
+    if (!archiveEnabled()) return [];
+    const sales = await sampleSales();
+    return sales.map((s) => ({
+      title: s.title.slice(0, 90),
+      price: `$${Math.round(s.price).toLocaleString("en-US")}`,
+      source: sourceName(s.source),
+    }));
+  },
+  ["home-backdrop-sales"],
+  { revalidate: 3600 },
+);
 
 const POINTS = [
   {
@@ -16,9 +40,14 @@ const POINTS = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const sales = await backdropSales().catch((e) => {
+    console.error("backdrop sales failed", e);
+    return [] as BackdropSale[];
+  });
   return (
-    <main className="mx-auto flex min-h-dvh max-w-5xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)] sm:px-6">
+    <main className="relative isolate mx-auto flex min-h-dvh max-w-5xl flex-col px-5 pt-[max(env(safe-area-inset-top),1.5rem)] sm:px-6">
+      <SalesBackdrop sales={sales} />
       <header className="flex items-center justify-between">
         <Wordmark />
         <nav className="flex items-center gap-6 text-[15px] text-muted">

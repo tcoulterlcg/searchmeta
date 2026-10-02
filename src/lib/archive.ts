@@ -146,3 +146,31 @@ export async function countSales() {
   const r = await db.execute("SELECT source, COUNT(*) AS n FROM sales GROUP BY source");
   return Object.fromEntries(r.rows.map((x) => [String(x.source), Number(x.n)]));
 }
+
+export interface TickerSale {
+  title: string;
+  price: number;
+  source: string;
+}
+
+/**
+ * A random spread of real sales for the home-page backdrop.
+ * Looks rows up by id, so it reads a few hundred rows instead of scanning the table.
+ */
+export async function sampleSales(count = 260): Promise<TickerSale[]> {
+  const db = await getArchive();
+  const top = await db.execute("SELECT MAX(id) AS n FROM sales");
+  const max = Number(top.rows[0]?.n ?? 0);
+  if (!max) return [];
+  const ids = new Set<number>();
+  // Ask for extra: some ids are gaps or have no price.
+  const want = Math.min(max, Math.ceil(count * 1.6));
+  while (ids.size < want) ids.add(1 + Math.floor(Math.random() * max));
+  const res = await db.execute(
+    `SELECT title, price, source FROM sales WHERE id IN (${[...ids].join(",")}) AND price > 0`,
+  );
+  return res.rows
+    .map((r) => ({ title: String(r.title).replace(/\s+/g, " ").trim(), price: Number(r.price), source: String(r.source) }))
+    .filter((s) => s.title.length > 12)
+    .slice(0, count);
+}

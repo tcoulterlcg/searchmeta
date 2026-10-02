@@ -81,3 +81,21 @@ body {
 @utility chip {
   @apply inline-flex cursor-pointer select-none items-center rounded-full border border-line px-3 py-1.5 text-sm text-muted transition;
 }
+
+/* Home-page backdrop of real sales: faint behind the copy, stronger toward the edges, with scan lines. */
+.sales-backdrop {
+  -webkit-mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, rgb(0 0 0 / 0.14) 35%, #000 100%);
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, rgb(0 0 0 / 0.14) 35%, #000 100%);
+}
+.sales-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, var(--color-ink) 2px 3px);
+  opacity: 0.55;
+}
+@media (max-width: 640px) {
+  .sales-backdrop {
+    opacity: 0.55;
+  }
+}
