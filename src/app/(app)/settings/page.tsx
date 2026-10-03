@@ -7,6 +7,9 @@ import { ThemeSettings } from "./ThemeSettings";
 import { signOut } from "./actions";
 import { isOwner } from "@/lib/owner";
 import { DeleteAccount } from "./DeleteAccount";
+import { BadgeAdmin } from "./BadgeAdmin";
+import { BadgeRow } from "@/components/Badges";
+import { getBadges, listBadges } from "@/lib/badges";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -16,6 +19,8 @@ export default async function SettingsPage() {
     : { data: null };
 
   const owner = await isOwner(user?.id);
+  const badges = await getBadges(user?.email);
+  const allBadges = owner ? await listBadges() : [];
 
   return (
     <div className="space-y-6">
@@ -24,6 +29,7 @@ export default async function SettingsPage() {
       <section className="rounded-xl border border-line bg-panel p-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted">Account</div>
         <div className="mt-2">{user?.email}</div>
+        <BadgeRow badges={badges} className="mt-2" />
       </section>
 
       <PushSettings />
@@ -40,6 +46,8 @@ export default async function SettingsPage() {
         <div className="text-xs font-semibold uppercase tracking-wider text-muted">Text message alerts</div>
         <p className="mt-2 text-sm text-muted">In Development</p>
       </section>
+
+      {owner && <BadgeAdmin rows={allBadges} />}
 
       {owner && (
         <section className="rounded-xl border border-line bg-panel p-4">

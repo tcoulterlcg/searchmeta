@@ -28,5 +28,6 @@ export async function DELETE(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { error } = await ctx.db.auth.admin.deleteUser(ctx.user.id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (ctx.user.email) await ctx.db.from("member_badges").delete().eq("email", ctx.user.email.toLowerCase());
   return NextResponse.json({ ok: true });
 }

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/(app)/settings/actions";
 import { Avatar } from "@/components/Avatar";
+import { BadgeRow, type Badge } from "@/components/Badges";
 
 /** Avatar button in the header: shows the account and a quick sign-out. */
-export function ProfileMenu({ email, avatarUrl }: { email: string; avatarUrl: string | null }) {
+export function ProfileMenu({ email, avatarUrl, badges = [] }: { email: string; avatarUrl: string | null; badges?: Badge[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,6 +43,7 @@ export function ProfileMenu({ email, avatarUrl }: { email: string; avatarUrl: st
           <div className="border-b border-line px-4 py-3">
             <div className="text-xs text-muted">Signed in as</div>
             <div className="truncate text-sm font-medium">{email}</div>
+            <BadgeRow badges={badges} className="mt-2" />
           </div>
           <Link
             href="/settings"
