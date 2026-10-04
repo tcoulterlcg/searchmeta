@@ -8,12 +8,12 @@ export default function SupportPage() {
     <LegalPage title="Support" updated="October 2, 2026">
       <p>
         Questions, bugs, or a site you want us to add? Email{" "}
-        <a href="mailto:support@grailio.app">support@grailio.app</a> and we&apos;ll get back to you.
+        <a href="mailto:support@grailfindr.com">support@grailfindr.com</a> and we&apos;ll get back to you.
       </p>
 
-      <h2>How Grailio works</h2>
+      <h2>How GrailFindr works</h2>
       <p>
-        Save a search once and Grailio checks every marketplace and auction house on the{" "}
+        Save a search once and GrailFindr checks every marketplace and auction house on the{" "}
         <a href="/about">About page</a> for new listings that match. When one appears, you get a notification and it shows
         up in Alerts. Set a search to <b>Daily feed</b> if you&apos;d rather get one summary each morning.
       </p>
@@ -32,7 +32,7 @@ export default function SupportPage() {
 
       <h2>Not getting notifications?</h2>
       <ul>
-        <li>Check that notifications are allowed for Grailio in your phone&apos;s Settings.</li>
+        <li>Check that notifications are allowed for GrailFindr in your phone&apos;s Settings.</li>
         <li>Make sure the saved search says <b>Alerts on</b> in Searches.</li>
         <li>When you first save a search, existing listings show in Alerts without a notification. Only new listings notify you.</li>
       </ul>
@@ -41,7 +41,7 @@ export default function SupportPage() {
       <p>
         Go to <b>Settings</b> and choose <b>Delete account</b> at the bottom. Your saved searches and alerts are removed
         straight away. If you can&apos;t sign in, email{" "}
-        <a href="mailto:support@grailio.app">support@grailio.app</a> from your account email and we&apos;ll delete it for you.
+        <a href="mailto:support@grailfindr.com">support@grailfindr.com</a> from your account email and we&apos;ll delete it for you.
       </p>
     </LegalPage>
   );

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Grailio",
-    "slug": "searchmeta",
-    "scheme": "searchmeta",
+    "name": "GrailFindr",
+    "slug": "grailfindr",
+    "scheme": "grailfindr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,14 +14,14 @@
       "backgroundColor": "#0b0d10"
     },
     "ios": {
-      "bundleIdentifier": "app.searchmeta",
+      "bundleIdentifier": "app.grailfindr",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "app.searchmeta",
+      "package": "app.grailfindr",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#0b0d10"

@@ -19,7 +19,7 @@ export default function Login() {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo: "https://searchmeta.vercel.app/auth/callback" },
+        options: { emailRedirectTo: "https://grailfindr.vercel.app/auth/callback" },
       });
       if (error) setMsg(error.message);
       else if (!data.session) setMsg("Check your email to confirm your account, then sign in here.");

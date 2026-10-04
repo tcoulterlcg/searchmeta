@@ -67,7 +67,7 @@ export default async function Home() {
             One search.
           </h1>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
-            Tell Grailio what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.{" "}
+            Tell GrailFindr what you&apos;re hunting for. The moment it&apos;s listed on any site we search, your phone buzzes.{" "}
             <Link href="/about" className="whitespace-nowrap text-signal hover:underline">See every site</Link>
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

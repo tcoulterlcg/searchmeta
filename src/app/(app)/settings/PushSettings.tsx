@@ -15,7 +15,7 @@ export function PushSettings() {
           {state === "on" && "On"}
           {state === "off" && "Off"}
           {state === "denied" && "Blocked in device settings"}
-          {state === "needs-install" && "Add Grailio to your Home Screen first"}
+          {state === "needs-install" && "Add GrailFindr to your Home Screen first"}
           {state === "unsupported" && "Not supported in this browser"}
           {state === "loading" && "…"}
         </span>

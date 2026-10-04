@@ -7,19 +7,19 @@ const DESCRIPTION =
   "Save a search once and get an alert the moment your card is listed on Goldin, Fanatics Collect, MyCardPost, MySlabs and more.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://searchmeta.vercel.app"),
-  title: { default: "Grailio: every marketplace, one search", template: "%s · Grailio" },
+  metadataBase: new URL("https://grailfindr.vercel.app"),
+  title: { default: "GrailFindr: every marketplace, one search", template: "%s · GrailFindr" },
   description: DESCRIPTION,
   openGraph: {
-    title: "Grailio: one saved search, every auction house",
+    title: "GrailFindr: one saved search, every auction house",
     description: DESCRIPTION,
-    siteName: "Grailio",
+    siteName: "GrailFindr",
     type: "website",
     url: "/",
   },
   twitter: { card: "summary_large_image" },
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "Grailio", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "GrailFindr", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {

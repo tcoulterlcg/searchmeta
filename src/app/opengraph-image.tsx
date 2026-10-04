@@ -1,10 +1,10 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Grailio: every marketplace, one search";
+export const alt = "GrailFindr: every marketplace, one search";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/** The preview picture shown when a Grailio link is shared in a text, email or social post. */
+/** The preview picture shown when a GrailFindr link is shared in a text, email or social post. */
 export default function OpenGraphImage() {
   return new ImageResponse(
     (
@@ -16,7 +16,7 @@ export default function OpenGraphImage() {
             <circle cx="32" cy="32" r="12.5" stroke="#3ef08a" strokeWidth="3" />
             <path d="M32 2v15M32 47v15M2 32h15" stroke="#3ef08a" strokeWidth="3" />
           </svg>
-          <div style={{ display: "flex", fontWeight: 800, letterSpacing: 2 }}>GRAILIO</div>
+          <div style={{ display: "flex", fontWeight: 800, letterSpacing: 2 }}>GRAILFINDR</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: 56, fontSize: 92, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
           <div style={{ display: "flex" }}>Every marketplace.</div>

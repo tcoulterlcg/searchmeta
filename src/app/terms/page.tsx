@@ -8,13 +8,13 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms of Service" updated="October 2, 2026">
       <p>
-        These terms cover your use of Grailio (&quot;we&quot;, &quot;us&quot;). By creating an account or using the site
-        or app, you agree to them. If you don&apos;t agree, please don&apos;t use Grailio.
+        These terms cover your use of GrailFindr (&quot;we&quot;, &quot;us&quot;). By creating an account or using the site
+        or app, you agree to them. If you don&apos;t agree, please don&apos;t use GrailFindr.
       </p>
 
-      <h2>What Grailio does</h2>
+      <h2>What GrailFindr does</h2>
       <p>
-        Grailio lets you save a search and get alerts when matching items are listed on the marketplaces and auction
+        GrailFindr lets you save a search and get alerts when matching items are listed on the marketplaces and auction
         houses we cover, and lets you look up past sale prices. The current list of sites is on the{" "}
         <Link href="/about">About page</Link> and changes over time.
       </p>
@@ -35,7 +35,7 @@ export default function TermsPage() {
 
       <h2>Buying happens elsewhere</h2>
       <p>
-        Grailio doesn&apos;t sell items, hold auctions or handle payments. When you follow an alert, you leave Grailio
+        GrailFindr doesn&apos;t sell items, hold auctions or handle payments. When you follow an alert, you leave GrailFindr
         and deal directly with that site under its own terms. We&apos;re not a party to any purchase and aren&apos;t
         responsible for items, sellers, bids, fees, shipping or disputes.
       </p>
@@ -43,7 +43,7 @@ export default function TermsPage() {
       <h2>Sold prices are information only</h2>
       <p>
         Past sale prices come from the sites listed on the About page and may be incomplete or contain errors. They are
-        not an appraisal, and nothing on Grailio is financial or investment advice.
+        not an appraisal, and nothing on GrailFindr is financial or investment advice.
       </p>
 
       <h2>Affiliate links</h2>
@@ -54,7 +54,7 @@ export default function TermsPage() {
 
       <h2>Fair use</h2>
       <ul>
-        <li>Don&apos;t use Grailio to break the law or anyone else&apos;s rights.</li>
+        <li>Don&apos;t use GrailFindr to break the law or anyone else&apos;s rights.</li>
         <li>Don&apos;t copy our data in bulk, run automated tools against the service, or resell it.</li>
         <li>Don&apos;t try to disrupt the service or get into other people&apos;s accounts.</li>
       </ul>
@@ -62,19 +62,19 @@ export default function TermsPage() {
 
       <h2>Price</h2>
       <p>
-        Grailio is free to use today. If we introduce paid features, we&apos;ll tell you the price before you&apos;re
+        GrailFindr is free to use today. If we introduce paid features, we&apos;ll tell you the price before you&apos;re
         charged anything.
       </p>
 
       <h2>Other companies&apos; names</h2>
       <p>
-        Marketplace and auction-house names belong to their owners. Grailio is independent and isn&apos;t endorsed by or
+        Marketplace and auction-house names belong to their owners. GrailFindr is independent and isn&apos;t endorsed by or
         affiliated with them unless we say so.
       </p>
 
       <h2>No warranty</h2>
       <p>
-        Grailio is provided &quot;as is&quot; and &quot;as available&quot;, without warranties of any kind, to the
+        GrailFindr is provided &quot;as is&quot; and &quot;as available&quot;, without warranties of any kind, to the
         fullest extent the law allows.
       </p>
 
@@ -88,11 +88,11 @@ export default function TermsPage() {
       <h2>Changes</h2>
       <p>
         We may update these terms. We&apos;ll change the date above and, for significant changes, tell you in the app. If
-        you keep using Grailio after a change, you accept the new terms.
+        you keep using GrailFindr after a change, you accept the new terms.
       </p>
 
       <h2>Contact</h2>
-      <p><a href="mailto:support@grailio.app">support@grailio.app</a></p>
+      <p><a href="mailto:support@grailfindr.com">support@grailfindr.com</a></p>
     </LegalPage>
   );
 }

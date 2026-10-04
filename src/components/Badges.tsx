@@ -1,4 +1,4 @@
-/** Profile badges: who someone is in the Grailio rollout. Order here is display order. */
+/** Profile badges: who someone is in the GrailFindr rollout. Order here is display order. */
 export const BADGES = ["founder", "partner", "alpha", "beta"] as const;
 export type Badge = (typeof BADGES)[number];
 

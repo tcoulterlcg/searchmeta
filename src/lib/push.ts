@@ -5,7 +5,7 @@ let configured = false;
 function configure() {
   if (configured) return;
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:support@grailio.app",
+    process.env.VAPID_SUBJECT || "mailto:support@grailfindr.com",
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!,
   );

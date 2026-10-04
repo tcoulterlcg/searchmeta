@@ -21,11 +21,11 @@ export function Wordmark() {
   return (
     <Link
       href="/"
-      aria-label="Grailio home"
+      aria-label="GrailFindr home"
       className={`${displayFont.className} flex w-fit items-center gap-2.5 text-xl font-extrabold uppercase tracking-wide`}
     >
       <Logo />
-      <span>Grailio</span>
+      <span>GrailFindr</span>
     </Link>
   );
 }

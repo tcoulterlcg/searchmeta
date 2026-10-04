@@ -1,4 +1,4 @@
-# Grailio app (iPhone + Android)
+# GrailFindr app (iPhone + Android)
 
 Expo / React Native app. Uses the same Supabase database and alert system as the website.
 
