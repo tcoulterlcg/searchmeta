@@ -22,10 +22,13 @@ export function Wordmark() {
     <Link
       href="/"
       aria-label="GrailFindr home"
-      className={`${displayFont.className} flex w-fit items-center gap-2.5 text-xl font-extrabold uppercase tracking-wide`}
+      className={`${displayFont.className} flex w-fit items-center gap-2.5 text-xl uppercase tracking-wide`}
     >
       <Logo />
-      <span>GrailFindr</span>
+      <span>
+        <span className="font-light">Grail</span>
+        <span className="font-extrabold">Findr</span>
+      </span>
     </Link>
   );
 }

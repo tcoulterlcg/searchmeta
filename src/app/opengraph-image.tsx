@@ -16,7 +16,10 @@ export default function OpenGraphImage() {
             <circle cx="32" cy="32" r="12.5" stroke="#3ef08a" strokeWidth="3" />
             <path d="M32 2v15M32 47v15M2 32h15" stroke="#3ef08a" strokeWidth="3" />
           </svg>
-          <div style={{ display: "flex", fontWeight: 800, letterSpacing: 2 }}>GRAILFINDR</div>
+          <div style={{ display: "flex", letterSpacing: 2 }}>
+            <div style={{ display: "flex", fontWeight: 300, opacity: 0.7 }}>GRAIL</div>
+            <div style={{ display: "flex", fontWeight: 800 }}>FINDR</div>
+          </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: 56, fontSize: 92, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>
           <div style={{ display: "flex" }}>Every marketplace.</div>

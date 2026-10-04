@@ -18,8 +18,8 @@ export function Wordmark({ size = 28 }: { size?: number }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <Logo size={size} />
-      <Text style={{ color: colors.text, fontSize: size * 0.68, fontFamily: fonts.heavy, letterSpacing: 0.8 }}>
-        GRAILFINDR
+      <Text style={{ color: colors.text, fontSize: size * 0.68, fontFamily: fonts.light, letterSpacing: 0.8 }}>
+        GRAIL<Text style={{ fontFamily: fonts.heavy }}>FINDR</Text>
       </Text>
     </View>
   );
