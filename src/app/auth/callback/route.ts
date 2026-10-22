@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safePath } from "@/lib/apps";
 
 /** Set by the sign-in page when a password reset is requested, so the email link lands on "choose a new password". */
 const RECOVERY_COOKIE = "sm_recovery";
@@ -18,5 +19,7 @@ export async function GET(req: NextRequest) {
     res.cookies.delete(RECOVERY_COOKIE);
     return res;
   }
-  return NextResponse.redirect(new URL("/searches", req.url));
+  // e.g. a Card HQ sign-up confirms here, then continues to /connect to finish on Card HQ.
+  const next = safePath(req.nextUrl.searchParams.get("next"), "/searches");
+  return NextResponse.redirect(new URL(next, req.url));
 }

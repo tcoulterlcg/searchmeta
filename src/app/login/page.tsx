@@ -5,10 +5,18 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Wordmark } from "@/components/Logo";
+import { SISTER_APPS, safePath } from "@/lib/apps";
 
 function LoginForm() {
   const params = useSearchParams();
   const router = useRouter();
+  // Set when another app (e.g. Card HQ) sent the person here to sign in with their GrailFindr account.
+  const next = params.get("next") ? safePath(params.get("next")) : null;
+  const sister = SISTER_APPS[params.get("app") ?? ""];
+  const go = (fallback: string) => {
+    if (next) window.location.assign(next);
+    else router.replace(fallback);
+  };
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(params.get("mode") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,15 +41,17 @@ function LoginForm() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+        },
       });
       if (error) setMsg(error.message);
       else if (!data.session) setMsg("Check your email to confirm your account.");
-      else router.replace("/searches");
+      else go("/searches");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg(error.message);
-      else router.replace("/alerts");
+      else go("/alerts");
     }
     setBusy(false);
   }
@@ -51,6 +61,12 @@ function LoginForm() {
       <div className="mb-8">
         <Wordmark />
       </div>
+      {sister && (
+        <p className="mb-4 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-muted">
+          Signing in to <span className="font-semibold text-text">{sister.name}</span> with your GrailFindr account.
+          One account works on both.
+        </p>
+      )}
       <h1 className="text-2xl font-bold">{mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : "Welcome back"}</h1>
       <form onSubmit={submit} className="mt-6 space-y-3">
         <input className="input" type="email" required autoComplete="email" placeholder="Email"

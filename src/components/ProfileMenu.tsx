@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/(app)/settings/actions";
 import { Avatar } from "@/components/Avatar";
 import { BadgeRow, type Badge } from "@/components/Badges";
+import { SISTER_APPS } from "@/lib/apps";
 
 /** Avatar button in the header: shows the account and a quick sign-out. */
 export function ProfileMenu({ email, avatarUrl, badges = [] }: { email: string; avatarUrl: string | null; badges?: Badge[] }) {
@@ -59,6 +60,17 @@ export function ProfileMenu({ email, avatarUrl, badges = [] }: { email: string; 
           >
             About
           </Link>
+          <div className="border-t border-line px-4 pb-1 pt-3 text-xs text-muted">Your account also works on</div>
+          {Object.values(SISTER_APPS).map((app) => (
+            <a
+              key={app.id}
+              href={`/connect?app=${app.id}`}
+              className="block px-4 pb-3 pt-1 text-sm hover:bg-ink"
+            >
+              <span className="font-medium">{app.name}</span> <span aria-hidden>↗</span>
+              <span className="block text-xs text-muted">{app.tagline}</span>
+            </a>
+          ))}
           <form action={signOut}>
             <button type="submit" className="w-full border-t border-line px-4 py-3 text-left text-sm text-red-500 hover:bg-ink">
               Sign out
