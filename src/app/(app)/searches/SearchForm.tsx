@@ -9,7 +9,8 @@ const FORMATS = [
   { id: "best_offer", label: "Accepts Offers" },
 ];
 
-export function SearchForm({ search }: { search?: SavedSearch }) {
+// `prefill` comes from links like /searches/new?keywords=...&name=... (e.g. Card HQ's "Find it").
+export function SearchForm({ search, prefill }: { search?: SavedSearch; prefill?: { keywords?: string; name?: string } }) {
   const s = search;
   const sources = s?.sources ?? SOURCES.map((x) => x.id);
 
@@ -19,7 +20,7 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
         {s && <input type="hidden" name="id" value={s.id} />}
 
         <Field label="Keywords">
-          <input name="keywords" className="input" required defaultValue={s?.keywords}
+          <input name="keywords" className="input" required defaultValue={s?.keywords ?? prefill?.keywords}
             placeholder='kucherov shield -reprint' autoCapitalize="none" autoCorrect="off" />
           <details className="mt-2 text-sm text-muted">
             <summary className="cursor-pointer">Search tips (same as eBay)</summary>
@@ -40,7 +41,7 @@ export function SearchForm({ search }: { search?: SavedSearch }) {
         </Field>
 
         <Field label="Name (optional)">
-          <input name="name" className="input" defaultValue={s?.name} placeholder="Kucherov Shield" />
+          <input name="name" className="input" defaultValue={s?.name ?? prefill?.name} placeholder="Kucherov Shield" />
         </Field>
 
         <Field label="Sites">
