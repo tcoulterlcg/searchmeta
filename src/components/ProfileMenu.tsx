@@ -61,10 +61,11 @@ export function ProfileMenu({ email, avatarUrl, badges = [] }: { email: string; 
             About
           </Link>
           <div className="border-t border-line px-4 pb-1 pt-3 text-xs text-muted">Your account also works on</div>
+          {/* the sister app starts the hand-off (?start=1) so it can check the token it gets back */}
           {Object.values(SISTER_APPS).map((app) => (
             <a
               key={app.id}
-              href={`/connect?app=${app.id}`}
+              href={`${app.url}${app.handoffPath}?start=1`}
               className="block px-4 pb-3 pt-1 text-sm hover:bg-ink"
             >
               <span className="font-medium">{app.name}</span> <span aria-hidden>↗</span>
