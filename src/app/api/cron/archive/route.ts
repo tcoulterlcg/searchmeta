@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     const moveStarted = Date.now();
     let move = null;
     try {
-      move = await moveStep(moveStarted + 15_000);
+      move = await moveStep(moveStarted + 28_000);
       if (move?.lastError) errors.move = move.lastError;
     } catch (e) {
       errors.move = message(e);
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 
     // The scrapers share what's left of the minute.
     const start = Date.now();
-    const deadline = start + 30_000;
+    const deadline = start + 24_000;
     const copied = await copyFromSupabase();
 
     let goldin = await getJob<GoldinBackfillState>("goldin-sold");
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
     if (!goldin.finishedAt) {
       try {
         // While both copies are running they share the minute.
-        goldin = await goldinBackfillStep(goldin, saveSales, start + 15_000);
+        goldin = await goldinBackfillStep(goldin, saveSales, start + 12_000);
       } catch (e) {
         errors.goldin = message(e);
       } finally {
