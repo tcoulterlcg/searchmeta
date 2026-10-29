@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { archiveEnabled, countSales, getJob, saveSales, setJob } from "@/lib/archive";
+import { moveStep } from "@/lib/archive-move";
 import { goldinBackfillStep, newGoldinBackfill, type GoldinBackfillState } from "@/lib/sources/goldin";
 import {
   fanaticsBackfillStep,
@@ -99,11 +100,22 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const start = Date.now();
-  const deadline = start + 45_000;
   const errors: Record<string, string> = {};
   const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
   try {
+    // One-time move to the new Turso database: copy a chunk first (lib/archive-move.ts).
+    const moveStarted = Date.now();
+    let move = null;
+    try {
+      move = await moveStep(moveStarted + 15_000);
+      if (move?.lastError) errors.move = move.lastError;
+    } catch (e) {
+      errors.move = message(e);
+    }
+
+    // The scrapers share what's left of the minute.
+    const start = Date.now();
+    const deadline = start + 30_000;
     const copied = await copyFromSupabase();
 
     let goldin = await getJob<GoldinBackfillState>("goldin-sold");
@@ -116,7 +128,7 @@ export async function GET(req: NextRequest) {
     if (!goldin.finishedAt) {
       try {
         // While both copies are running they share the minute.
-        goldin = await goldinBackfillStep(goldin, saveSales, start + 22_000);
+        goldin = await goldinBackfillStep(goldin, saveSales, start + 15_000);
       } catch (e) {
         errors.goldin = message(e);
       } finally {
@@ -161,6 +173,7 @@ export async function GET(req: NextRequest) {
       {
         ok: !failed,
         copied,
+        move: move && { done: move.done, copiedTo: move.copiedTo, oldMax: move.oldMax, monthCopied: move.monthCopied, pausedForMonth: move.pausedForMonth ?? false },
         errors: failed ? errors : undefined,
         goldin: { pages: goldin.pages, saved: goldin.saved, bandsLeft: goldin.queue.length, finishedAt: goldin.finishedAt },
         fanatics: {

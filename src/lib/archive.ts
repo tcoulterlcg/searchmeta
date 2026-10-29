@@ -5,52 +5,113 @@ import type { SaleInput } from "./types";
 /**
  * Sold archive, stored in Turso (free 5 GB SQLite) so we can keep every sale.
  * Titles are indexed with SQLite full-text search (FTS5).
+ *
+ * Moving to a new Turso database (2026-10-29): the old one (TURSO_DATABASE_URL) belongs to an account
+ * on Trevor's work login; the new one (TURSO_NEW_*, created through his personal Vercel's Turso
+ * integration) is his own. The archive cron copies the old rows across a chunk at a time
+ * (lib/archive-move.ts). Once the copy has caught up it marks the "move" job done in the new
+ * database, and from then on the new database is the archive everywhere.
  */
 
-let client: Client | null = null;
-let schemaReady = false;
+let oldClient: Client | null = null;
+let newClient: Client | null = null;
+const schemaReady = new WeakSet<Client>();
+let moved: { done: boolean; checkedAt: number } | null = null;
+const MOVE_CHECK_MS = 5 * 60 * 1000;
 
-export function archiveEnabled() {
-  return Boolean(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN);
+const oldUrl = () => process.env.TURSO_DATABASE_URL;
+const oldToken = () => process.env.TURSO_AUTH_TOKEN;
+const newUrl = () =>
+  process.env.TURSO_NEW_DATABASE_URL || process.env.TURSO_NEW_URL || process.env.TURSO_NEW_LIBSQL_URL;
+const newToken = () =>
+  process.env.TURSO_NEW_AUTH_TOKEN || process.env.TURSO_NEW_TOKEN || process.env.TURSO_NEW_DATABASE_TOKEN;
+
+export function oldArchiveConfigured() {
+  return Boolean(oldUrl() && oldToken());
 }
 
+export function newArchiveConfigured() {
+  return Boolean(newUrl() && newToken());
+}
+
+export function archiveEnabled() {
+  return oldArchiveConfigured() || newArchiveConfigured();
+}
+
+async function ensureSchema(db: Client) {
+  if (schemaReady.has(db)) return;
+  await db.batch(
+    [
+      `CREATE TABLE IF NOT EXISTS sales (
+        id INTEGER PRIMARY KEY,
+        source TEXT NOT NULL,
+        external_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        url TEXT,
+        image_url TEXT,
+        price REAL,
+        sale_type TEXT,
+        sold_at TEXT,
+        first_seen_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      )`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS sales_source_ext ON sales(source, external_id)`,
+      // Nothing reads this index, and every index adds to the monthly write count.
+      `DROP INDEX IF EXISTS sales_sold_at`,
+      `CREATE VIRTUAL TABLE IF NOT EXISTS sales_fts USING fts5(title, content='sales', content_rowid='id', tokenize='unicode61 remove_diacritics 2')`,
+      `CREATE TRIGGER IF NOT EXISTS sales_ai AFTER INSERT ON sales BEGIN
+        INSERT INTO sales_fts(rowid, title) VALUES (new.id, new.title);
+      END`,
+      `CREATE TABLE IF NOT EXISTS jobs (name TEXT PRIMARY KEY, state TEXT, updated_at TEXT)`,
+    ],
+    "write",
+  );
+  schemaReady.add(db);
+}
+
+const connect = (url: string, authToken: string) =>
+  createClient({ url: url.replace(/^libsql:\/\//, "https://"), authToken });
+
+/** The old archive (work-login Turso account). Only the move code should need this directly. */
+export async function getOldArchive(): Promise<Client> {
+  if (!oldArchiveConfigured()) throw new Error("Old Turso archive is not configured");
+  if (!oldClient) oldClient = connect(oldUrl()!, oldToken()!);
+  await ensureSchema(oldClient);
+  return oldClient;
+}
+
+/** The new archive (Trevor's personal Turso account). */
+export async function getNewArchive(): Promise<Client> {
+  if (!newArchiveConfigured()) throw new Error("New Turso archive is not configured");
+  if (!newClient) newClient = connect(newUrl()!, newToken()!);
+  await ensureSchema(newClient);
+  return newClient;
+}
+
+/** True once the copy into the new database has caught up (checked every few minutes). */
+export async function archiveMoved(force = false): Promise<boolean> {
+  if (!newArchiveConfigured()) return false;
+  if (!oldArchiveConfigured()) return true;
+  if (!force && moved && (moved.done || Date.now() - moved.checkedAt < MOVE_CHECK_MS)) return moved.done;
+  try {
+    const db = await getNewArchive();
+    const r = await db.execute({ sql: "SELECT state FROM jobs WHERE name = 'move'", args: [] });
+    const st = r.rows[0]?.state ? JSON.parse(String(r.rows[0].state)) : null;
+    moved = { done: Boolean(st?.done), checkedAt: Date.now() };
+  } catch {
+    moved = { done: false, checkedAt: Date.now() };
+  }
+  return moved.done;
+}
+
+/** Called by the move code the moment the copy catches up, so this instance switches at once. */
+export function markArchiveMoved() {
+  moved = { done: true, checkedAt: Date.now() };
+}
+
+/** The archive to read and write: the new database once the move is done, otherwise the old one. */
 export async function getArchive(): Promise<Client> {
   if (!archiveEnabled()) throw new Error("Turso is not configured");
-  if (!client) {
-    client = createClient({
-      url: process.env.TURSO_DATABASE_URL!.replace(/^libsql:\/\//, "https://"),
-      authToken: process.env.TURSO_AUTH_TOKEN!,
-    });
-  }
-  if (!schemaReady) {
-    await client.batch(
-      [
-        `CREATE TABLE IF NOT EXISTS sales (
-          id INTEGER PRIMARY KEY,
-          source TEXT NOT NULL,
-          external_id TEXT NOT NULL,
-          title TEXT NOT NULL,
-          url TEXT,
-          image_url TEXT,
-          price REAL,
-          sale_type TEXT,
-          sold_at TEXT,
-          first_seen_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-        )`,
-        `CREATE UNIQUE INDEX IF NOT EXISTS sales_source_ext ON sales(source, external_id)`,
-        // Nothing reads this index, and every index adds to the monthly write count.
-        `DROP INDEX IF EXISTS sales_sold_at`,
-        `CREATE VIRTUAL TABLE IF NOT EXISTS sales_fts USING fts5(title, content='sales', content_rowid='id', tokenize='unicode61 remove_diacritics 2')`,
-        `CREATE TRIGGER IF NOT EXISTS sales_ai AFTER INSERT ON sales BEGIN
-          INSERT INTO sales_fts(rowid, title) VALUES (new.id, new.title);
-        END`,
-        `CREATE TABLE IF NOT EXISTS jobs (name TEXT PRIMARY KEY, state TEXT, updated_at TEXT)`,
-      ],
-      "write",
-    );
-    schemaReady = true;
-  }
-  return client;
+  return (await archiveMoved()) ? getNewArchive() : getOldArchive();
 }
 
 /**
