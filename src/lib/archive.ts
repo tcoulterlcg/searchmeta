@@ -22,9 +22,9 @@ const MOVE_CHECK_MS = 5 * 60 * 1000;
 const oldUrl = () => process.env.TURSO_DATABASE_URL;
 const oldToken = () => process.env.TURSO_AUTH_TOKEN;
 const newUrl = () =>
-  process.env.TURSO_NEW_DATABASE_URL || process.env.TURSO_NEW_URL || process.env.TURSO_NEW_LIBSQL_URL;
+  process.env.TURSO_NEW_TURSO_DATABASE_URL || process.env.TURSO_NEW_DATABASE_URL || process.env.TURSO_NEW_URL || process.env.TURSO_NEW_LIBSQL_URL;
 const newToken = () =>
-  process.env.TURSO_NEW_AUTH_TOKEN || process.env.TURSO_NEW_TOKEN || process.env.TURSO_NEW_DATABASE_TOKEN;
+  process.env.TURSO_NEW_TURSO_AUTH_TOKEN || process.env.TURSO_NEW_AUTH_TOKEN || process.env.TURSO_NEW_TOKEN || process.env.TURSO_NEW_DATABASE_TOKEN;
 
 export function oldArchiveConfigured() {
   return Boolean(oldUrl() && oldToken());
